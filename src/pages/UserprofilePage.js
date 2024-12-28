@@ -18,7 +18,6 @@ const UserProfile = () => {
     <div className="user-profile">
       <h1>User Profile</h1>
 
-      {/* Profile Section */}
       <section className="profile-section">
         <h2>Profile Information</h2>
         <div className="profile-details">
@@ -30,7 +29,6 @@ const UserProfile = () => {
         </div>
       </section>
 
-      {/* Order History Section */}
       <section className="order-history">
         <h2>Order History</h2>
         <table>
@@ -55,7 +53,6 @@ const UserProfile = () => {
         </table>
       </section>
 
-      {/* Account Settings Section */}
       <section className="account-settings">
         <h2>Account Settings</h2>
         <button className="settings-button">Change Password</button>

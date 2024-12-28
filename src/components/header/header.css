@@ -1,29 +1,106 @@
 .header {
-    background-color: #333;
-    color: #fff;
-    padding: 10px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .header .logo h1 {
-    margin: 0;
-  }
-  
-  .header .nav ul {
-    list-style: none;
-    display: flex;
-    gap: 15px;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .header .nav a {
-    color: #fff;
-    text-decoration: none;
-  }
-  
-  .header .nav a:hover {
-    text-decoration: underline;
-  }  
+  background-color: #333;
+  color: #fff;
+  padding: 10px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-row {
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: 10px;
+}
+
+.cart-link {
+  color: #fff;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.main-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  flex: 0; /* Keep the logo at its natural size */
+  margin-right: 20px; /* Add spacing between the logo and the nav */
+}
+
+.nav {
+  flex: 1; /* Make the nav fill the available space */
+  display: flex;
+  align-items: center;
+}
+
+.nav ul {
+  display: flex;
+  justify-content: flex-start; /* Align navigation links to the left */
+  list-style: none;
+  gap: 15px;
+  padding: 0;
+  margin: 0;
+}
+
+.nav a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.nav a:hover {
+  text-decoration: underline;
+}
+
+.user-icon {
+  flex: 0; /* Keep the user icon on the right */
+  position: relative;
+  cursor: pointer;
+  margin-left: 20px; /* Add spacing between the user icon and the nav */
+}
+
+.icon {
+  font-size: 1.5rem;
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  background-color: #fff;
+  color: #333;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  width: 160px;
+  box-sizing: border-box;
+  padding: 0; /* Remove padding around the menu */
+  margin: 0; /* Remove any default margin */
+}
+
+/* Dropdown Menu Items */
+.dropdown-menu li {
+  list-style: none; /* Remove bullet points */
+  padding: 0; /* Ensure no extra padding on li elements */
+  margin: 0; /* Remove default margin */
+}
+
+.dropdown-menu a,
+.dropdown-menu button {
+  color: #333;
+  cursor: pointer;
+  padding: 10px; /* Ensure equal padding inside items */
+  width: 100%; /* Stretch items to fill the dropdown container */
+  text-align: left; /* Align text to the left */
+  display: block; /* Ensure items take up their row */
+  box-sizing: border-box; /* Include padding in width calculation */
+  transition: background-color 0.3s ease, color 0.3s ease; /* Smooth hover effects */
+  text-decoration: none; /* Remove underline from links */
+}
+
+.dropdown-menu a:hover,
+.dropdown-menu button:hover {
+  background-color: #4e9af1; /* Add hover background */
+  color: #fff; /* Change text color on hover */
+}

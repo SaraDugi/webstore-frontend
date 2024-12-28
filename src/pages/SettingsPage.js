@@ -6,7 +6,6 @@ const SettingsPage = () => {
     <div className="settings-page">
       <h1 className="settings-title">Account Settings</h1>
 
-      {/* Personal Information Section */}
       <section className="settings-section">
         <h2 className="section-title">Personal Information</h2>
         <form className="settings-form">
@@ -26,14 +25,12 @@ const SettingsPage = () => {
         </form>
       </section>
 
-      {/* Security Settings Section */}
       <section className="settings-section">
         <h2 className="section-title">Security</h2>
         <button className="btn-secondary">Change Password</button>
         <button className="btn-danger">Delete Account</button>
       </section>
 
-      {/* Notification Preferences Section */}
       <section className="settings-section">
         <h2 className="section-title">Notifications</h2>
         <form className="settings-form">

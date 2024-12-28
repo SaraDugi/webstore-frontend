@@ -36,3 +36,63 @@
     transform: rotate(360deg);
   }
 }
+
+.item-page {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  background-color: #f9f9f9;
+}
+
+.item-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.item-image {
+  width: 300px;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.item-details {
+  text-align: center;
+}
+
+.item-details h1 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.item-price {
+  font-size: 1.5rem;
+  color: #4caf50;
+  margin-bottom: 20px;
+}
+
+.item-description {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 20px;
+}
+
+.btn-primary {
+  background-color: #4e9af1;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #357ac9;
+}

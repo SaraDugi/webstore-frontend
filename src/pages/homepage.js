@@ -4,7 +4,6 @@ import '../styles.css';
 const HomePage = () => {
   return (
     <div className="homepage">
-      {/* Hero Section */}
       <section className="hero">
         <div className="hero-content">
           <h1>Welcome to MyStore</h1>
@@ -13,7 +12,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Featured Products Section */}
       <section className="featured-products">
         <h2>Featured Products</h2>
         <div className="products">
@@ -35,7 +33,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Services Section */}
       <section className="services">
         <h2>Our Services</h2>
         <div className="service-list">
