@@ -1,7 +1,21 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import '../styles.css';
+import { CartContext } from '../contexts/CartContext'; // Assuming you have a CartContext
 
 const HomePage = () => {
+  const { addToCart } = useContext(CartContext); // Access the addToCart function
+
+  const featuredProducts = [
+    { id: 1, name: 'Product 1', price: '$19.99', image: 'https://via.placeholder.com/150' },
+    { id: 2, name: 'Product 2', price: '$29.99', image: 'https://via.placeholder.com/150' },
+    { id: 3, name: 'Product 3', price: '$39.99', image: 'https://via.placeholder.com/150' },
+  ];
+
+  const handleAddToCart = (product) => {
+    addToCart(product); // Call the context function to add the product to the cart
+    alert(`${product.name} added to cart!`);
+  };
+
   return (
     <div className="homepage">
       <section className="hero">
@@ -15,21 +29,19 @@ const HomePage = () => {
       <section className="featured-products">
         <h2>Featured Products</h2>
         <div className="products">
-          <div className="product-card">
-            <img src="https://via.placeholder.com/150" alt="Product 1" />
-            <h3>Product 1</h3>
-            <p>$19.99</p>
-          </div>
-          <div className="product-card">
-            <img src="https://via.placeholder.com/150" alt="Product 2" />
-            <h3>Product 2</h3>
-            <p>$29.99</p>
-          </div>
-          <div className="product-card">
-            <img src="https://via.placeholder.com/150" alt="Product 3" />
-            <h3>Product 3</h3>
-            <p>$39.99</p>
-          </div>
+          {featuredProducts.map((product) => (
+            <div className="product-card" key={product.id}>
+              <img src={product.image} alt={product.name} />
+              <h3>{product.name}</h3>
+              <p>{product.price}</p>
+              <button
+                className="add-to-cart-button"
+                onClick={() => handleAddToCart(product)}
+              >
+                Add to Cart
+              </button>
+            </div>
+          ))}
         </div>
       </section>
 

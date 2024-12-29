@@ -1,74 +1,55 @@
-import React, { useState } from 'react';
-import '../styles.css';
+import React, { useState, useContext } from 'react';
+import { LogInContext } from '../contexts/LoginContext';
+import { useNavigate, Navigate } from 'react-router-dom';
 
-const LoginPage = ({ onLogin }) => {
+const LoginPage = () => {
+  const { handleLogin, loggedInUser } = useContext(LogInContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate(); // Use React Router's useNavigate for navigation
 
-  const users = [
-    { email: 'user1@example.com', password: 'password123' },
-    { email: 'user2@example.com', password: 'mypassword' },
-  ];
+  // Redirect if the user is already logged in
+  if (loggedInUser) {
+    return <Navigate to="/" replace />;
+  }
 
-  const handleLogin = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    let hasError = false;
+    setError('');
 
-    setEmailError('');
-    setPasswordError('');
-
-    if (!email.includes('@')) {
-      setEmailError('Invalid email format.');
-      hasError = true;
-    } else if (!users.find((user) => user.email === email)) {
-      setEmailError('Email does not exist.');
-      hasError = true;
+    if (!email || !password) {
+      setError('Please fill in all fields.');
+      return;
     }
 
-    if (!password) {
-      setPasswordError('Password cannot be empty.');
-      hasError = true;
-    } else if (
-      users.find((user) => user.email === email && user.password !== password)
-    ) {
-      setPasswordError('Incorrect password.');
-      hasError = true;
-    }
-
-    if (!hasError) {
-      onLogin({ email });
-      alert('Login successful!');
+    const success = handleLogin({ email, password });
+    if (success) {
+      navigate('/'); // Redirect to the home page after successful login
+    } else {
+      setError('Invalid email or password.');
     }
   };
 
   return (
     <div className="login-page">
       <h1>Login</h1>
-      <form className="login-form" onSubmit={handleLogin}>
-        <label htmlFor="email">Email:</label>
+      <form className="login-form" onSubmit={handleSubmit}>
+        <label>Email:</label>
         <input
-          id="email"
           type="email"
-          placeholder="Enter your email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className={emailError ? 'input-error' : ''}
+          required
         />
-        {emailError && <p className="error-message">{emailError}</p>}
-
-        <label htmlFor="password">Password:</label>
+        <label>Password:</label>
         <input
-          id="password"
           type="password"
-          placeholder="Enter your password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className={passwordError ? 'input-error' : ''}
+          required
         />
-        {passwordError && <p className="error-message">{passwordError}</p>}
-
+        {error && <p className="error-message">{error}</p>}
         <button type="submit" className="btn-primary">Login</button>
       </form>
     </div>

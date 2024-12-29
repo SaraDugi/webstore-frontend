@@ -1,64 +1,79 @@
-import React, { useState } from 'react';
-import '../styles.css'; 
+import React, { useState, useContext } from 'react';
+import { UsersContext } from '../contexts/UserContext';
+import { LogInContext } from '../contexts/LoginContext';
+import { Navigate } from 'react-router-dom';
 
-const RegisterPage = ({ onRegister }) => {
+const RegisterPage = () => {
+  const { loggedInUser } = useContext(LogInContext);
+  const { handleRegister } = useContext(UsersContext);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
-  const handleRegister = (e) => {
+  if (loggedInUser) {
+    return <Navigate to="/profile" replace />;
+  }
+  const handleSubmit = (e) => {
     e.preventDefault();
+    setError('');
+    setSuccessMessage('');
 
     if (password !== confirmPassword) {
-      alert('Passwords do not match.');
+      setError('Passwords do not match.');
       return;
     }
 
-    if (username && email && password) {
-      onRegister({ username, email });
-      alert('Registration successful!');
+    if (!username || !email || !password) {
+      setError('Please fill in all fields.');
+      return;
+    }
+
+    const success = handleRegister({ username, email, password });
+
+    if (success) {
+      setSuccessMessage('Registration successful! You can now log in.');
     } else {
-      alert('Please fill in all fields.');
+      setError('A user with this email already exists.');
     }
   };
 
   return (
     <div className="register-page">
       <h1>Register</h1>
-      <form className="register-form" onSubmit={handleRegister}>
-        <label htmlFor="username">Username:</label>
+      <form className="register-form" onSubmit={handleSubmit}>
+        <label>Username:</label>
         <input
-          id="username"
           type="text"
-          placeholder="Enter your username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          required
         />
-        <label htmlFor="email">Email:</label>
+        <label>Email:</label>
         <input
-          id="email"
           type="email"
-          placeholder="Enter your email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
-        <label htmlFor="password">Password:</label>
+        <label>Password:</label>
         <input
-          id="password"
           type="password"
-          placeholder="Enter your password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
-        <label htmlFor="confirm-password">Confirm Password:</label>
+        <label>Confirm Password:</label>
         <input
-          id="confirm-password"
           type="password"
-          placeholder="Confirm your password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
+          required
         />
+        {error && <p className="error-message">{error}</p>}
+        {successMessage && <p className="success-message">{successMessage}</p>}
         <button type="submit" className="btn-primary">Register</button>
       </form>
     </div>
