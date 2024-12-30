@@ -187,17 +187,11 @@ const SettingsPage = () => {
             {paymentMethods.length > 0 ? (
               paymentMethods.map((method, index) => (
                 <div className="payment-card" key={index}>
-                  <p><strong>{method}</strong></p>
+                  <p><strong>{method.type === 'Card' ? method.cardholderName : method.paypalEmail}</strong></p>
                   <div className="button-row">
-                    {index === 0 && <span className="primary-badge">Primary</span>}
                     <button className="btn-secondary" onClick={() => openModal('payment', index)}>
                       Edit
                     </button>
-                    {index !== 0 && (
-                      <button className="btn-secondary" onClick={() => handleSetPrimaryPayment(index)}>
-                        Set as Primary
-                      </button>
-                    )}
                   </div>
                 </div>
               ))
@@ -283,36 +277,63 @@ const SettingsPage = () => {
               }}
             >
               {editType === 'address' && (
-                <>
-                  <label>
-                    Address:
-                    <input
-                      type="text"
-                      value={address.address}
-                      onChange={(e) => setAddress({ ...address, address: e.target.value })}
-                      required
-                    />
-                  </label>
-                  <label>
-                    City:
-                    <input
-                      type="text"
-                      value={address.city}
-                      onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                      required
-                    />
-                  </label>
-                  <label>
-                    Postal Code:
-                    <input
-                      type="text"
-                      value={address.postalCode}
-                      onChange={(e) => setAddress({ ...address, postalCode: e.target.value })}
-                      required
-                    />
-                  </label>
-                </>
-              )}
+  <div className="modal-overlay">
+    <div className="modal">
+      <h2>{selectedAddressIndex !== null ? 'Edit Address' : 'Add Address'}</h2>
+      {error && <p className="error-message">{error}</p>}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSave();
+        }}
+      >
+        <label>
+          Address:
+          <input
+            type="text"
+            value={address.address}
+            onChange={(e) => setAddress({ ...address, address: e.target.value })}
+            required
+          />
+        </label>
+        <label>
+          City:
+          <input
+            type="text"
+            value={address.city}
+            onChange={(e) => setAddress({ ...address, city: e.target.value })}
+            required
+          />
+        </label>
+        <label>
+          Postal Code:
+          <input
+            type="text"
+            value={address.postalCode}
+            onChange={(e) => setAddress({ ...address, postalCode: e.target.value })}
+            required
+          />
+        </label>
+        <label>
+          Country:
+          <input
+            type="text"
+            value={address.country || ''}
+            onChange={(e) => setAddress({ ...address, country: e.target.value })}
+            required
+          />
+        </label>
+        <div className="modal-buttons">
+          <button type="submit" className="btn-primary">Save</button>
+          <button type="button" className="btn-secondary" onClick={closeModal}>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+
               {editType === 'phone' && (
                 <label>
                   Phone Number:
@@ -325,16 +346,78 @@ const SettingsPage = () => {
                 </label>
               )}
               {editType === 'payment' && (
+                <div className="modal-overlay">
+                  <div className="modal">
+                    <h2>{selectedPaymentIndex !== null ? 'Edit Payment Method' : 'Add Payment Method'}</h2>
+                    {error && <p className="error-message">{error}</p>}
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSave();
+                      }}
+                    >
                 <label>
-                  Payment Method:
-                  <input
-                    type="text"
-                    value={newPaymentMethod}
-                    onChange={(e) => setNewPaymentMethod(e.target.value)}
+                  Payment Type:
+                  <select
+                    value={newPaymentMethod.type}
+                    onChange={(e) => setNewPaymentMethod({ ...newPaymentMethod, type: e.target.value })}
                     required
-                  />
+                  >
+                    <option value="">Select</option>
+                    <option value="Card">Card</option>
+                    <option value="PayPal">PayPal</option>
+                  </select>
                 </label>
+                {newPaymentMethod.type === 'Card' && (
+                <>
+                  <label>
+                    Cardholder Name:
+                    <input
+                      type="text"
+                      value={newPaymentMethod.cardholderName}
+                      onChange={(e) => setNewPaymentMethod({ ...newPaymentMethod, cardholderName: e.target.value })}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Card Number:
+                    <input
+                      type="text"
+                      value={newPaymentMethod.cardNumber}
+                      onChange={(e) => setNewPaymentMethod({ ...newPaymentMethod, cardNumber: e.target.value })}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Expiry Date:
+                    <input
+                      type="text"
+                      placeholder="MM/YY"
+                      value={newPaymentMethod.expiryDate}
+                      onChange={(e) => setNewPaymentMethod({ ...newPaymentMethod, expiryDate: e.target.value })}
+                      required
+                    />
+                  </label>
+                  <label>
+                    CVV:
+                    <input
+                      type="text"
+                      value={newPaymentMethod.cvv}
+                      onChange={(e) => setNewPaymentMethod({ ...newPaymentMethod, cvv: e.target.value })}
+                      required
+                    />
+                  </label>
+                </>
               )}
+              <div className="modal-buttons">
+                <button type="submit" className="btn-primary">Save</button>
+                <button type="button" className="btn-secondary" onClick={closeModal}>Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      <div className="tabs">{renderTabContent()}</div>
               <div className="modal-buttons">
                 <button type="submit" className="btn-primary">Save</button>
                 <button type="button" className="btn-secondary" onClick={closeModal}>

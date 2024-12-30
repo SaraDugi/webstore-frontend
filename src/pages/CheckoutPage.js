@@ -13,6 +13,7 @@ const CheckoutPage = () => {
     delivery_address: '',
     postal_number: '',
     city: '',
+    county: '', // Added county field
   });
   const [paymentMethod, setPaymentMethod] = useState('');
 
@@ -31,9 +32,8 @@ const CheckoutPage = () => {
   };
 
   const handleSaveAddress = () => {
-    // Validate inputs
-    const { recipient_name, recipient_email, recipient_phone, delivery_address, postal_number, city } = newAddress;
-    if (!recipient_name || !recipient_email || !recipient_phone || !delivery_address || !postal_number || !city) {
+    const { recipient_name, recipient_email, recipient_phone, delivery_address, postal_number, city, county } = newAddress;
+    if (!recipient_name || !recipient_email || !recipient_phone || !delivery_address || !postal_number || !city || !county) {
       alert('Please fill in all fields.');
       return;
     }
@@ -48,82 +48,72 @@ const CheckoutPage = () => {
 
   return (
     <div className="checkout-page">
-      <h1>Checkout</h1>
-      <div className="order-summary">
-        <h2>Order Summary</h2>
-        <ul className="cart-items">
-          {cart.map((item, index) => (
-            <li key={index} className="cart-item">
-              <img src={item.image} alt={item.name} />
-              <div>
-                <h3>{item.name}</h3>
-                <p>Price: {item.price}</p>
-                <p>Quantity: {item.amount}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-        <div className="cart-total">
-          <h2>Total: ${calculateTotal()}</h2>
-        </div>
-      </div>
-
-      <div className="checkout-details">
-        <h2>Delivery Address</h2>
-        {savedAddress ? (
-          <div className="address-summary">
-            <p>
-              <strong>Name:</strong> {savedAddress.recipient_name}
-            </p>
-            <p>
-              <strong>Email:</strong> {savedAddress.recipient_email}
-            </p>
-            <p>
-              <strong>Phone:</strong> {savedAddress.recipient_phone}
-            </p>
-            <p>
-              <strong>Address:</strong> {savedAddress.delivery_address}
-            </p>
-            <p>
-              <strong>Postal Code:</strong> {savedAddress.postal_number}
-            </p>
-            <p>
-              <strong>City:</strong> {savedAddress.city}
-            </p>
-            <button className="btn-secondary" onClick={handleEditAddress}>
-              Edit Address
-            </button>
+      <h1 className="checkout-title">Checkout</h1>
+      <div className="checkout-container">
+        {/* Order Summary */}
+        <div className="order-summary">
+          <h2 className="section-title">Order Summary</h2>
+          <ul className="cart-items">
+            {cart.map((item, index) => (
+              <li key={index} className="cart-item">
+                <img src={item.image} alt={item.name} className="cart-item-image" />
+                <div className="cart-item-details">
+                  <h3 className="cart-item-name">{item.name}</h3>
+                  <p className="cart-item-price">Price: {item.price}</p>
+                  <p className="cart-item-quantity">Quantity: {item.amount}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="cart-total">
+            <h3>Total: <span>${calculateTotal()}</span></h3>
           </div>
-        ) : (
-          <button className="btn-primary" onClick={() => setAddressPopup(true)}>
-            Add Address
-          </button>
-        )}
+        </div>
 
-        <h2>Payment Method</h2>
-        <select
-          value={paymentMethod}
-          onChange={(e) => setPaymentMethod(e.target.value)}
-          className="payment-method-select"
-        >
-          <option value="">Select a payment method</option>
-          <option value="Credit Card">Credit Card</option>
-          <option value="Debit Card">Debit Card</option>
-          <option value="PayPal">PayPal</option>
-          <option value="Cash on Delivery">Cash on Delivery</option>
-        </select>
+        {/* Delivery Address */}
+        <div className="checkout-details">
+          <h2 className="section-title">Delivery Address</h2>
+          {savedAddress ? (
+            <div className="address-summary">
+              <p><strong>Name:</strong> {savedAddress.recipient_name}</p>
+              <p><strong>Email:</strong> {savedAddress.recipient_email}</p>
+              <p><strong>Phone:</strong> {savedAddress.recipient_phone}</p>
+              <p><strong>Address:</strong> {savedAddress.delivery_address}</p>
+              <p><strong>Postal Code:</strong> {savedAddress.postal_number}</p>
+              <p><strong>City:</strong> {savedAddress.city}</p>
+              <p><strong>County:</strong> {savedAddress.county}</p>
+              <button className="btn-secondary" onClick={handleEditAddress}>Edit Address</button>
+            </div>
+          ) : (
+            <button className="btn-primary" onClick={() => setAddressPopup(true)}>Add Address</button>
+          )}
+
+          {/* Payment Method */}
+          <h2 className="section-title">Payment Method</h2>
+          <select
+            value={paymentMethod}
+            onChange={(e) => setPaymentMethod(e.target.value)}
+            className="payment-method-select"
+          >
+            <option value="">Select a payment method</option>
+            <option value="Credit Card">Credit Card</option>
+            <option value="Debit Card">Debit Card</option>
+            <option value="PayPal">PayPal</option>
+            <option value="Cash on Delivery">Cash on Delivery</option>
+          </select>
+        </div>
+
+        <button onClick={handlePlaceOrder} className="btn-primary place-order-button">
+          Place Order
+        </button>
       </div>
-
-      <button onClick={handlePlaceOrder} className="btn-primary place-order-button">
-        Place Order
-      </button>
 
       {addressPopup && (
         <div className="address-popup">
           <div className="popup-content">
             <h2>Enter Delivery Address</h2>
             <label>
-              Recipient Name
+              Name
               <input
                 type="text"
                 value={newAddress.recipient_name}
@@ -152,20 +142,16 @@ const CheckoutPage = () => {
                 type="text"
                 value={newAddress.delivery_address}
                 onChange={(e) => setNewAddress({ ...newAddress, delivery_address: e.target.value })}
-                rows="3"
               />
             </label>
             <label>
-                Postal Code
-                <input
-                    type="number"
-                    value={newAddress.postal_number}
-                    onChange={(e) => {
-                    const value = Math.max(0, e.target.value);
-                    setNewAddress({ ...newAddress, postal_number: value });
-                    }}
-                />
-                </label>
+              Postal Code
+              <input
+                type="number"
+                value={newAddress.postal_number}
+                onChange={(e) => setNewAddress({ ...newAddress, postal_number: e.target.value })}
+              />
+            </label>
             <label>
               City
               <input
@@ -174,13 +160,17 @@ const CheckoutPage = () => {
                 onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
               />
             </label>
+            <label>
+              County
+              <input
+                type="text"
+                value={newAddress.county}
+                onChange={(e) => setNewAddress({ ...newAddress, county: e.target.value })}
+              />
+            </label>
             <div className="popup-actions">
-              <button className="btn-primary" onClick={handleSaveAddress}>
-                Save Address
-              </button>
-              <button className="btn-danger" onClick={() => setAddressPopup(false)}>
-                Cancel
-              </button>
+              <button className="btn-primary" onClick={handleSaveAddress}>Save Address</button>
+              <button className="btn-danger" onClick={() => setAddressPopup(false)}>Cancel</button>
             </div>
           </div>
         </div>

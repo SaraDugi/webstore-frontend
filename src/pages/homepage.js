@@ -1,9 +1,11 @@
 import React, { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles.css';
-import { CartContext } from '../contexts/CartContext'; // Assuming you have a CartContext
+import { CartContext } from '../contexts/CartContext';
 
 const HomePage = () => {
-  const { addToCart } = useContext(CartContext); // Access the addToCart function
+  const navigate = useNavigate();
+  const { addToCart } = useContext(CartContext);
 
   const featuredProducts = [
     { id: 1, name: 'Product 1', price: '$19.99', image: 'https://via.placeholder.com/150' },
@@ -11,8 +13,12 @@ const HomePage = () => {
     { id: 3, name: 'Product 3', price: '$39.99', image: 'https://via.placeholder.com/150' },
   ];
 
+  const handleProductClick = (id) => {
+    navigate(`/products/${id}`);
+  };
+
   const handleAddToCart = (product) => {
-    addToCart(product); // Call the context function to add the product to the cart
+    addToCart(product);
     alert(`${product.name} added to cart!`);
   };
 
@@ -30,13 +36,20 @@ const HomePage = () => {
         <h2>Featured Products</h2>
         <div className="products">
           {featuredProducts.map((product) => (
-            <div className="product-card" key={product.id}>
+            <div
+              className="product-card"
+              key={product.id}
+              onClick={() => handleProductClick(product.id)}
+            >
               <img src={product.image} alt={product.name} />
               <h3>{product.name}</h3>
               <p>{product.price}</p>
               <button
                 className="add-to-cart-button"
-                onClick={() => handleAddToCart(product)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent navigating when clicking the button
+                  handleAddToCart(product);
+                }}
               >
                 Add to Cart
               </button>

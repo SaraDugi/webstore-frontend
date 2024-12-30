@@ -23,20 +23,20 @@ const CartPage = () => {
 
   return (
     <div className="cart-page">
-      <h1>Your Cart</h1>
+      <h1 className="cart-title">Your Cart</h1>
       {cart.length === 0 ? (
-        <p>Your cart is empty</p>
+        <p className="cart-empty-message">Your cart is empty</p>
       ) : (
-        <div>
+        <div className="cart-container">
           <ul className="cart-items">
             {cart.map((item, index) => (
               <li key={index} className="cart-item">
-                <img src={item.image} alt={item.name} />
-                <div>
-                  <h3>{item.name}</h3>
-                  <p>Price: {item.price}</p>
+                <img src={item.image} alt={item.name} className="cart-item-image" />
+                <div className="cart-item-details">
+                  <h3 className="cart-item-name">{item.name}</h3>
+                  <p className="cart-item-price">Price: {item.price}</p>
                   <div className="quantity-wrapper">
-                    <label htmlFor={`quantity-${index}`}>Quantity: </label>
+                    <label htmlFor={`quantity-${index}`} className="quantity-label">Quantity:</label>
                     <input
                       id={`quantity-${index}`}
                       type="number"
@@ -47,7 +47,7 @@ const CartPage = () => {
                     />
                   </div>
                 </div>
-                <button className="btn-danger" onClick={() => removeFromCart(index)}>
+                <button className="btn-danger remove-button" onClick={() => removeFromCart(index)}>
                   Remove
                 </button>
               </li>
