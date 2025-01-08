@@ -1,41 +1,44 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
-import { UsersContext } from './UserContext';
+import axios from 'axios';
 
 export const LogInContext = createContext();
 
 export const LogInProvider = ({ children }) => {
-  const { registeredUsers } = useContext(UsersContext);
   const [loggedInUser, setLoggedInUser] = useState(null);
 
   useEffect(() => {
-    const savedLoggedInUser = Cookies.get('loggedInUser');
-    if (savedLoggedInUser) {
-      setLoggedInUser(JSON.parse(savedLoggedInUser));
+    const savedToken = Cookies.get('authToken');
+    if (savedToken) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${savedToken}`;
+      setLoggedInUser({ token: savedToken });
     }
   }, []);
 
-  useEffect(() => {
-    if (loggedInUser) {
-      Cookies.set('loggedInUser', JSON.stringify(loggedInUser), { expires: 7 });
-    } else {
-      Cookies.remove('loggedInUser');
-    }
-  }, [loggedInUser]);
-
-  const handleLogin = ({ email, password }) => {
-    const user = registeredUsers.find(
-      (u) => u.email === email && u.password === password
-    );
-    if (user) {
-      setLoggedInUser(user);
+  const handleLogin = async ({ email, password }) => {
+    try {
+      const response = await axios.post('http://localhost:5000/users/login', { email, password });
+      const { access_token } = response.data.data;
+  
+      if (!access_token) {
+        return false;
+      }
+  
+      Cookies.set('authToken', access_token, { expires: 7 });
+      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+  
+      setLoggedInUser({ token: access_token, email, currentPassword: password });
       return true;
+    } catch (error) {
+      console.error('Login failed:', error.response?.data || error.message);
+      return false;
     }
-    return false;
   };
 
   const handleLogout = () => {
     setLoggedInUser(null);
+    Cookies.remove('authToken');
+    delete axios.defaults.headers.common['Authorization'];
   };
 
   return (

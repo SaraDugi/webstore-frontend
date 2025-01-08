@@ -6,7 +6,6 @@ import { Navigate } from 'react-router-dom';
 const RegisterPage = () => {
   const { loggedInUser } = useContext(LogInContext);
   const { handleRegister } = useContext(UsersContext);
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -16,27 +15,49 @@ const RegisterPage = () => {
   if (loggedInUser) {
     return <Navigate to="/profile" replace />;
   }
-  const handleSubmit = (e) => {
+
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validatePassword = (password) => password.length >= 8;
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccessMessage('');
+
+    if (!email || !password || !confirmPassword) {
+      setError('Please fill in all fields.');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      setError('Password must be at least 8 characters long.');
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
       return;
     }
 
-    if (!username || !email || !password) {
-      setError('Please fill in all fields.');
-      return;
-    }
+    const normalizedEmail = email.trim().toLowerCase();
+    try {
+      const result = await handleRegister({ email: normalizedEmail, password });
 
-    const success = handleRegister({ username, email, password });
-
-    if (success) {
-      setSuccessMessage('Registration successful! You can now log in.');
-    } else {
-      setError('A user with this email already exists.');
+      if (result.success) {
+        setSuccessMessage('Registration successful! You can now log in.');
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+      } else {
+        setError(result.message);
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
     }
   };
 
@@ -44,13 +65,6 @@ const RegisterPage = () => {
     <div className="register-page">
       <h1>Register</h1>
       <form className="register-form" onSubmit={handleSubmit}>
-        <label>Username:</label>
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
         <label>Email:</label>
         <input
           type="email"
@@ -74,7 +88,9 @@ const RegisterPage = () => {
         />
         {error && <p className="error-message">{error}</p>}
         {successMessage && <p className="success-message">{successMessage}</p>}
-        <button type="submit" className="btn-primary">Register</button>
+        <button type="submit" className="btn-primary">
+          Register
+        </button>
       </form>
     </div>
   );

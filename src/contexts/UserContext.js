@@ -1,85 +1,38 @@
-import React, { createContext, useState, useEffect } from 'react';
-import Cookies from 'js-cookie';
+import React, { createContext } from 'react';
+import axios from 'axios';
 
 export const UsersContext = createContext();
 
 export const UsersProvider = ({ children }) => {
-  const [registeredUsers, setRegisteredUsers] = useState([]);
-  const [loggedInUser, setLoggedInUser] = useState(null);
+  const handleRegister = async (userData) => {
+    try {
+      const normalizedData = { ...userData, email: userData.email.toLowerCase().trim() };
 
-  // Load data from cookies on initial render
-  useEffect(() => {
-    const savedUsers = Cookies.get('registeredUsers');
-    if (savedUsers) {
-      setRegisteredUsers(JSON.parse(savedUsers));
+      const response = await axios.post('http://localhost:5000/users/', normalizedData, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.status === 201) {
+        return { success: true };
+      }
+    } catch (err) {
+      if (err.response) {
+        const { status, data } = err.response;
+        if (status === 400) {
+          return { success: false, message: 'Validation error: Email or password missing.' };
+        }
+        if (status === 409) {
+          return { success: false, message: 'A user with this email already exists.' };
+        }
+        return { success: false, message: data?.message || 'Unexpected error occurred.' };
+      }
+      console.error('Network or unexpected error: ', err);
+      return { success: false, message: 'Network error. Please try again later.' };
     }
-    const savedLoggedInUser = Cookies.get('loggedInUser');
-    if (savedLoggedInUser) {
-      setLoggedInUser(JSON.parse(savedLoggedInUser));
-    }
-  }, []);
-
-  // Save registered users to cookies whenever they change
-  useEffect(() => {
-    Cookies.set('registeredUsers', JSON.stringify(registeredUsers), { expires: 7 });
-  }, [registeredUsers]);
-
-  // Save logged-in user to cookies whenever they change
-  useEffect(() => {
-    if (loggedInUser) {
-      Cookies.set('loggedInUser', JSON.stringify(loggedInUser), { expires: 7 });
-    } else {
-      Cookies.remove('loggedInUser');
-    }
-  }, [loggedInUser]);
-
-  const handleRegister = (userData) => {
-    const userExists = registeredUsers.some((u) => u.email === userData.email);
-
-    if (userExists) {
-      return false; // Registration failed due to duplicate email
-    }
-
-    setRegisteredUsers([...registeredUsers, userData]);
-    return true; // Registration successful
-  };
-
-  const updateRegisteredUser = (updatedUser) => {
-    setRegisteredUsers((prevUsers) =>
-      prevUsers.map((user) =>
-        user.email === updatedUser.email ? updatedUser : user
-      )
-    );
-
-    if (loggedInUser && loggedInUser.email === updatedUser.email) {
-      setLoggedInUser(updatedUser);
-    }
-  };
-
-  const updateUserInfo = (newData) => {
-    if (!loggedInUser) return;
-
-    const updatedUser = { ...loggedInUser, ...newData };
-
-    setRegisteredUsers((prevUsers) =>
-      prevUsers.map((user) =>
-        user.email === loggedInUser.email ? updatedUser : user
-      )
-    );
-
-    setLoggedInUser(updatedUser);
   };
 
   return (
-    <UsersContext.Provider
-      value={{
-        registeredUsers,
-        loggedInUser,
-        handleRegister,
-        updateRegisteredUser,
-        updateUserInfo,
-      }}
-    >
+    <UsersContext.Provider value={{ handleRegister }}>
       {children}
     </UsersContext.Provider>
   );
