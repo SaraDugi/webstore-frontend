@@ -4,7 +4,6 @@ import Header from './components/header/header';
 import Footer from './components/footer/footer';
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
-import ItemPage from './pages/ItemPage';
 import UserOrders from './pages/OrderPage';
 import SettingsPage from './pages/SettingsPage';
 import CartPage from './pages/CartPage';
@@ -22,7 +21,6 @@ const App = () => {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/products" element={<ProductsPage />} />
-          <Route path="/products/:id" element={<ItemPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/login" element={<LoginPage />} />

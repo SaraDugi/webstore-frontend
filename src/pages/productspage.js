@@ -1,55 +1,145 @@
-import React, { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useContext, useEffect, useState } from 'react';
 import { CartContext } from '../contexts/CartContext';
+import { LogInContext } from '../contexts/LoginContext';
 import '../styles.css';
 
 const ProductsPage = () => {
-  const navigate = useNavigate();
   const { addToCart } = useContext(CartContext);
+  const { loggedInUser } = useContext(LogInContext);
+  const [products, setProducts] = useState([]);
+  const [error, setError] = useState('');
+  const [searchId, setSearchId] = useState('');
+  const [searchResult, setSearchResult] = useState(null);
 
-  const products = [
-    { id: 1, name: 'Product 1', price: '$19.99', image: 'https://via.placeholder.com/150' },
-    { id: 2, name: 'Product 2', price: '$29.99', image: 'https://via.placeholder.com/150' },
-    { id: 3, name: 'Product 3', price: '$39.99', image: 'https://via.placeholder.com/150' },
-    { id: 4, name: 'Product 4', price: '$49.99', image: 'https://via.placeholder.com/150' },
-    { id: 5, name: 'Product 5', price: '$59.99', image: 'https://via.placeholder.com/150' },
-    { id: 6, name: 'Product 6', price: '$69.99', image: 'https://via.placeholder.com/150' },
-    { id: 7, name: 'Product 7', price: '$79.99', image: 'https://via.placeholder.com/150' },
-  ];
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (!loggedInUser || !loggedInUser.token) {
+        setError('You must be logged in to view products.');
+        return;
+      }
 
-  const handleProductClick = (id) => {
-    navigate(`/products/${id}`);
-  };
+      try {
+        const response = await fetch('http://localhost:5001/catalog/', {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${loggedInUser.token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        if (Array.isArray(data) && Array.isArray(data[0])) {
+          setProducts(data[0]); // Extract the first element containing the product array
+        } else {
+          setError('Unexpected response format from API.');
+        }
+      } catch (error) {
+        setError('Failed to fetch products. Please try again later.');
+        console.error('Error fetching products:', error.message);
+      }
+    };
+
+    fetchProducts();
+  }, [loggedInUser]);
 
   const handleAddToCart = (product) => {
     addToCart(product);
     alert(`${product.name} added to cart!`);
   };
 
+  const handleSearch = async () => {
+    if (!searchId) {
+      setError('Please enter a product ID.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5001/catalog/${searchId}`, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${loggedInUser.token}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          setSearchResult(null);
+          setError('Product not found.');
+        } else {
+          throw new Error(`Error: ${response.status} - ${response.statusText}`);
+        }
+        return;
+      }
+
+      const data = await response.json();
+      setSearchResult(data); // Set the single product object
+      setError('');
+    } catch (error) {
+      setSearchResult(null);
+      setError('Failed to fetch the product. Please try again later.');
+      console.error('Error searching product:', error.message);
+    }
+  };
+
+  const handleCancelSearch = () => {
+    setSearchResult(null); // Clear the search result
+    setSearchId(''); // Clear the search input field
+    setError(''); // Clear any error messages
+  };
+
   return (
     <div className="products-page">
       <h1>Products</h1>
-      <div className="product-grid">
-        {products.map((product) => (
-          <div
-            key={product.id}
-            className="product-card"
-            onClick={() => handleProductClick(product.id)}
-          >
-            <img src={product.image} alt={product.name} />
-            <h2>{product.name}</h2>
-            <p>{product.price}</p>
+      <div className="search-bar">
+        <input
+          type="text"
+          placeholder="Enter Product ID"
+          value={searchId}
+          onChange={(e) => setSearchId(e.target.value)}
+        />
+        <button onClick={handleSearch}>Search</button>
+        {searchResult && (
+          <button onClick={handleCancelSearch} className="btn-cancel">
+            Cancel Search
+          </button>
+        )}
+      </div>
+      {error && <p className="search-error">{error}</p>}
+      {searchResult ? (
+        <div className="product-grid">
+          <div className="product-card">
+            <h2>{searchResult.name}</h2>
+            <p>${searchResult.price}</p>
+            <p>{searchResult.description}</p>
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleAddToCart(product);
-              }}
+              onClick={() => handleAddToCart(searchResult)}
             >
               Add to Cart
             </button>
           </div>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div className="product-grid">
+          {products.map((product) => (
+            <div key={product._id} className="product-card">
+              <h2>{product.name}</h2>
+              <p>${product.price}</p>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddToCart(product);
+                }}
+              >
+                Add to Cart
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

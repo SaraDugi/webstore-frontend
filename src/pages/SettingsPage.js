@@ -4,8 +4,10 @@ import '../styles.css';
 import axios from 'axios';
 
 const SettingsPage = () => {
+  const [searchQuery, setSearchQuery] = useState('');
   const { loggedInUser, handleLogout } = useContext(LogInContext);
   const [error, setError] = useState('');
+  const [creditCards, setCreditCards] = useState([]);
   const [isEditAccountModalOpen, setIsEditAccountModalOpen] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -14,6 +16,14 @@ const SettingsPage = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
   const [isAccountDeactivated, setIsAccountDeactivated] = useState(null);
+  const [newCard, setNewCard] = useState({
+    cardNumber: '',
+    expirationDate: '',
+    balance: 0,
+    active: true,
+  });
+  const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
+  const [filteredCards, setFilteredCards] = useState(creditCards);
 
   const openEditAccountModal = () => {
     setIsEditAccountModalOpen(true);
@@ -30,34 +40,105 @@ const SettingsPage = () => {
   };
 
   useEffect(() => {
-    const fetchAccountStatus = async () => {
+    const fetchCreditCards = async () => {
       if (!loggedInUser) return;
-
+  
       try {
-        const email = loggedInUser.email;
-
-        const searchResponse = await axios.get(
-          `http://localhost:5000/users/search/${email}`,
-          {
-            headers: {
-              Authorization: `Bearer ${loggedInUser.token}`,
-            },
-          }
-        );
-
-        if (searchResponse.status === 200 && searchResponse.data.data.length > 0) {
-          const user = searchResponse.data.data[0];
-
-          setIsAccountDeactivated(user.deactivated || false);
+        const response = await axios.get('http://localhost:8080/api/card', {
+          headers: {
+            Authorization: `Bearer ${loggedInUser.token}`,
+          },
+        });
+  
+        if (response.status === 200) {
+          setCreditCards(response.data.value);
+          setFilteredCards(response.data.value);
+        } else {
+          setError('Failed to fetch credit cards.');
         }
       } catch (error) {
-        console.error('Error fetching account status:', error.message);
-        setError('Failed to fetch account status.');
+        console.error('Error fetching credit cards:', error.message);
+        setError('An error occurred while fetching credit cards.');
       }
     };
-
-    fetchAccountStatus();
+  
+    fetchCreditCards();
   }, [loggedInUser]);
+
+  const handleSearch = () => {
+    const filtered = creditCards.filter((card) =>
+      card.cardNumber.includes(searchQuery)
+    );
+    setFilteredCards(filtered);
+  };  
+
+  const handleAddCard = async (e) => {
+    e.preventDefault();
+  
+    if (!newCard.cardNumber || !newCard.expirationDate || newCard.balance < 0) {
+      setError('Please fill in all the fields correctly.');
+      return;
+    }
+  
+    try {
+      const verifyResponse = await axios.post(
+        `http://localhost:8080/api/card/${newCard.cardNumber}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${loggedInUser.token}`,
+          },
+        }
+      );
+  
+      if (verifyResponse.status === 200 && verifyResponse.data.value) {
+        alert('A card with this number already exists.');
+        return; 
+      }
+  
+      const payload = {
+        id: 0,
+        cardHolderId: loggedInUser.id,
+        cardNumber: newCard.cardNumber,
+        expirationDate: newCard.expirationDate,
+        balance: newCard.balance,
+        active: newCard.active,
+      };
+  
+      const response = await axios.post('http://localhost:8080/api/card', payload, {
+        headers: {
+          Authorization: `Bearer ${loggedInUser.token}`,
+        },
+      });
+  
+      if (response.status === 200) {
+        alert('Credit card added successfully.');
+        setIsAddCardModalOpen(false);
+        setNewCard({
+          cardNumber: '',
+          expirationDate: '',
+          balance: 0,
+          active: true,
+        });
+        setCreditCards((prevCards) => [...prevCards, response.data.value]);
+      } else {
+        setError('Failed to add the credit card.');
+      }
+    } catch (error) {
+      console.error('Error adding credit card:', error.message);
+      setError('An error occurred while adding the credit card.');
+    }
+  };
+  
+  const openAddCardModal = () => {
+    setIsAddCardModalOpen(true);
+    setError('');
+  };
+
+  const closeAddCardModal = () => {
+    setIsAddCardModalOpen(false);
+    setError('');
+  };
 
   const handleEditAccount = async () => {
     if (!newEmail) {
@@ -124,6 +205,36 @@ const SettingsPage = () => {
     }
   };
 
+  const handleDeleteAllCards = async () => {
+    if (!loggedInUser || !loggedInUser.token) {
+      setError('You need to log in to perform this action.');
+      return;
+    }
+  
+    if (!window.confirm('Are you sure you want to delete all credit cards? This action cannot be undone.')) {
+      return;
+    }
+  
+    try {
+      const response = await axios.delete('http://localhost:8080/api/card', {
+        headers: {
+          Authorization: `Bearer ${loggedInUser.token}`,
+        },
+      });
+  
+      if (response.status === 200) {
+        alert('All credit cards have been deleted.');
+        setCreditCards([]);
+      } else {
+        setError('Failed to delete all credit cards.');
+      }
+    } catch (error) {
+      console.error('Error deleting all credit cards:', error.message);
+      setError('An error occurred while deleting all credit cards. Please try again.');
+    }
+  };
+  
+
   const handleDeactivateAccount = async () => {
     try {
       const email = loggedInUser.email;
@@ -164,6 +275,41 @@ const SettingsPage = () => {
     }
   };
 
+  const handleExtendExpiration = async (cardId) => {
+    if (!loggedInUser || !loggedInUser.token) {
+      setError('You need to log in to perform this action.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put(
+        `http://localhost:8080/api/card/extend/${cardId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${loggedInUser.token}`,
+          },
+        }
+      );
+  
+      if (response.status === 200) {
+        alert('Expiration date successfully extended.');
+        setCreditCards((prevCards) =>
+          prevCards.map((card) =>
+            card.id === cardId
+              ? { ...card, expirationDate: new Date(card.expirationDate).setFullYear(new Date(card.expirationDate).getFullYear() + 1) }
+              : card
+          )
+        );
+      } else {
+        setError('Failed to extend expiration date.');
+      }
+    } catch (error) {
+      console.error('Error extending expiration date:', error.message);
+      setError('An error occurred while extending the expiration date. Please try again.');
+    }
+  };  
+
 
   const handleDeleteProfile = async () => {
     if (!loggedInUser || !loggedInUser.token || !loggedInUser.email) {
@@ -201,6 +347,63 @@ const SettingsPage = () => {
       alert('An error occurred while deleting the profile. Please try again.');
     }
   };
+
+  const handleDeleteCard = async (cardNumber) => {
+    if (!loggedInUser || !loggedInUser.token) {
+      setError('You need to log in to perform this action.');
+      return;
+    }
+  
+    if (!window.confirm(`Are you sure you want to delete the card ending in ${cardNumber.slice(-4)}?`)) return;
+  
+    try {
+      const response = await axios.delete(`http://localhost:8080/api/card/${cardNumber}`, {
+        headers: {
+          Authorization: `Bearer ${loggedInUser.token}`,
+        },
+      });
+  
+      if (response.status === 200) {
+        alert('Card deleted successfully.');
+        setCreditCards((prevCards) => prevCards.filter((card) => card.cardNumber !== cardNumber));
+      } else {
+        setError('Failed to delete the card.');
+      }
+    } catch (error) {
+      console.error('Error deleting card:', error.message);
+      setError('An error occurred while deleting the card. Please try again.');
+    }
+  };
+  
+  const handleToggleCardStatus = async (cardId, currentStatus) => {
+    if (!loggedInUser || !loggedInUser.token) {
+      setError('You need to log in to perform this action.');
+      return;
+    }
+  
+    try {
+      const response = await axios.put(`http://localhost:8080/api/card/active/${cardId}`, {}, {
+        headers: {
+          Authorization: `Bearer ${loggedInUser.token}`,
+        },
+      });
+  
+      if (response.status === 200) {
+        alert(`Card status successfully updated to ${!currentStatus ? 'Active' : 'Inactive'}.`);
+        setCreditCards((prevCards) =>
+          prevCards.map((card) =>
+            card.id === cardId ? { ...card, active: !currentStatus } : card
+          )
+        );
+      } else {
+        setError('Failed to update card status.');
+      }
+    } catch (error) {
+      console.error('Error updating card status:', error.message);
+      setError('An error occurred while updating the card status. Please try again.');
+    }
+  };
+  
 
   const handleReactivateAccount = async () => {
     try {
@@ -257,22 +460,80 @@ const SettingsPage = () => {
               Edit Account
             </button>
             {isAccountDeactivated === null ? (
-          <p>Loading account status...</p>
-        ) : isAccountDeactivated ? (
-          <button className="btn-primary" onClick={handleReactivateAccount}>
-            Reactivate Account
-          </button>
-        ) : (
-          <button className="btn-secondary" onClick={handleDeactivateAccount}>
-            Deactivate Account
-          </button>
-        )}
+              <p>Loading account status...</p>
+            ) : isAccountDeactivated ? (
+              <button className="btn-primary" onClick={handleReactivateAccount}>
+                Reactivate Account
+              </button>
+            ) : (
+              <button className="btn-secondary" onClick={handleDeactivateAccount}>
+                Deactivate Account
+              </button>
+            )}
             <button className="btn-danger" onClick={() => setIsDeleteModalOpen(true)}>
               Delete Profile
+            </button>
+            <button className="btn-primary" onClick={openAddCardModal}>
+              Add New Credit Card
             </button>
           </div>
         </div>
       </div>
+
+      {/* Add Credit Card Modal */}
+      {isAddCardModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>Add New Credit Card</h2>
+            {error && <p className="error-message">{error}</p>}
+            <form onSubmit={handleAddCard}>
+              <label>
+                Card Number:
+                <input
+                  type="text"
+                  value={newCard.cardNumber}
+                  onChange={(e) => setNewCard({ ...newCard, cardNumber: e.target.value })}
+                  required
+                />
+              </label>
+              <label>
+                Expiration Date:
+                <input
+                  type="date"
+                  value={newCard.expirationDate}
+                  onChange={(e) => setNewCard({ ...newCard, expirationDate: e.target.value })}
+                  required
+                />
+              </label>
+              <label>
+                Balance:
+                <input
+                  type="number"
+                  value={newCard.balance}
+                  onChange={(e) => setNewCard({ ...newCard, balance: parseFloat(e.target.value) })}
+                  required
+                />
+              </label>
+              <label>
+                Active:
+                <input
+                  type="checkbox"
+                  checked={newCard.active}
+                  onChange={(e) => setNewCard({ ...newCard, active: e.target.checked })}
+                />
+              </label>
+              <div className="modal-buttons">
+                <button type="submit" className="btn-primary">
+                  Add Card
+                </button>
+                <button type="button" className="btn-secondary" onClick={closeAddCardModal}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     {/* Deactivate Account Modal */}
     {isDeactivateModalOpen && (
@@ -295,6 +556,86 @@ const SettingsPage = () => {
         </div>
       )}
 
+<div className="card-section">
+<div className="card-header">
+  <h2 className="card-title">Your Cards</h2>
+  <button className="btn-danger delete-all-button" onClick={handleDeleteAllCards}>
+    Delete All Cards
+  </button>
+</div>
+
+  <div className="action-buttons">
+    <div className="search-container">
+      <input
+        type="text"
+        className="search-bar"
+        placeholder="Search by Card Number"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
+      <button className="btn-primary search-button" onClick={handleSearch}>
+        Search
+      </button>
+      {searchQuery && (
+        <button
+          className="btn-secondary cancel-search-button"
+          onClick={() => {
+            setSearchQuery('');
+            setFilteredCards(creditCards);
+          }}
+        >
+          Cancel
+        </button>
+      )}
+    </div>
+  </div>
+  <div className="credit-card-container">
+    <div className="credit-card-list">
+      {filteredCards.map((card) => (
+        <div key={card.id} className="credit-card-item-modern">
+          <div className="card-header">
+            <p className="card-number">
+              <strong>Card Number:</strong>{' '}
+              {card.cardNumber.replace(/\d{12}(\d{4})/, '**** **** **** $1')}
+            </p>
+          </div>
+          <div className="card-body">
+            <p>
+              <strong>Balance:</strong> ${card.balance.toFixed(2)}
+            </p>
+            <p>
+              <strong>Expiration Date:</strong>{' '}
+              {new Date(card.expirationDate).toLocaleDateString()}
+            </p>
+            <p>
+              <strong>Status:</strong> {card.active ? 'Active' : 'Inactive'}
+            </p>
+          </div>
+          <div className="card-actions">
+            <button
+              className="btn-secondary"
+              onClick={() => handleToggleCardStatus(card.cardNumber, card.active)}
+            >
+              {card.active ? 'Deactivate' : 'Activate'}
+            </button>
+            <button
+              className="btn-danger"
+              onClick={() => handleDeleteCard(card.cardNumber)}
+            >
+              Delete
+            </button>
+            <button
+              className="btn-primary"
+              onClick={() => handleExtendExpiration(card.id)}
+            >
+              Extend Expiration
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
       {/* Edit Account Modal */}
       {isEditAccountModalOpen && (
         <div className="modal-overlay">
