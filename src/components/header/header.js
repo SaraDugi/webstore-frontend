@@ -47,6 +47,11 @@ const Header = () => {
                       </Link>
                     </li>
                     <li>
+                      <Link to="/payment-history" className="dropdown-link">
+                        Payment History
+                      </Link>
+                    </li>
+                    <li>
                       <Link to="/settings" className="dropdown-link">
                         Settings
                       </Link>

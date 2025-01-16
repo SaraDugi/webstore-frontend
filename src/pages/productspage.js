@@ -47,7 +47,7 @@ const ProductsPage = () => {
   }, [loggedInUser]);
 
   const handleAddToCart = (product) => {
-    addToCart(product);
+    addToCart({ ...product, amount: 1 }); // Add product to the cart with a default quantity of 1
     alert(`${product.name} added to cart!`);
   };
 
@@ -117,6 +117,7 @@ const ProductsPage = () => {
             <p>{searchResult.description}</p>
             <button
               onClick={() => handleAddToCart(searchResult)}
+              className="btn-primary"
             >
               Add to Cart
             </button>
@@ -133,6 +134,7 @@ const ProductsPage = () => {
                   e.stopPropagation();
                   handleAddToCart(product);
                 }}
+                className="btn-primary"
               >
                 Add to Cart
               </button>

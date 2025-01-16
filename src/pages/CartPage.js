@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { useNavigate } from 'react-router-dom'; // For navigation
+import { useNavigate } from 'react-router-dom';
 import '../styles.css';
 import { CartContext } from '../contexts/CartContext';
 
@@ -15,7 +15,7 @@ const CartPage = () => {
   };
 
   const calculateTotal = () =>
-    cart.reduce((total, item) => total + parseFloat(item.price.replace('$', '')) * item.amount, 0).toFixed(2);
+    cart.reduce((total, item) => total + item.price * item.amount, 0).toFixed(2);
 
   const handleCheckout = () => {
     navigate('/checkout'); // Navigate to the checkout page
@@ -34,7 +34,7 @@ const CartPage = () => {
                 <img src={item.image} alt={item.name} className="cart-item-image" />
                 <div className="cart-item-details">
                   <h3 className="cart-item-name">{item.name}</h3>
-                  <p className="cart-item-price">Price: {item.price}</p>
+                  <p className="cart-item-price">Price: ${item.price}</p>
                   <div className="quantity-wrapper">
                     <label htmlFor={`quantity-${index}`} className="quantity-label">Quantity:</label>
                     <input

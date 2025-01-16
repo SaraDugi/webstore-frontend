@@ -11,6 +11,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AboutUsPage from './pages/AboutusPage';
+import PaymentHistory from './pages/PaymentHistory'; 
 import { LogInProvider, LogInContext } from './contexts/LoginContext';
 
 const App = () => {
@@ -28,6 +29,7 @@ const App = () => {
           <Route path="/about" element={<AboutUsPage />} />
           <Route path="/orders" element={<PrivateRoute component={UserOrders} />} />
           <Route path="/settings" element={<PrivateRoute component={SettingsPage} />} />
+          <Route path="/payment-history" element={<PrivateRoute component={PaymentHistory} />} /> {/* Add the new route */}
         </Routes>
         <Footer />
       </Router>
@@ -35,6 +37,7 @@ const App = () => {
   );
 };
 
+// PrivateRoute component ensures the user is logged in before accessing protected pages
 const PrivateRoute = ({ component: Component }) => {
   const { loggedInUser } = React.useContext(LogInContext);
   return loggedInUser ? <Component /> : <Navigate to="/login" />;
