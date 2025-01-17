@@ -1,180 +1,221 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { CartContext } from '../contexts/CartContext';
+import { LogInContext } from '../contexts/LoginContext';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import '../styles.css';
 
 const CheckoutPage = () => {
   const { cart } = useContext(CartContext);
-  const [addressPopup, setAddressPopup] = useState(false);
-  const [savedAddress, setSavedAddress] = useState(null);
-  const [newAddress, setNewAddress] = useState({
-    recipient_name: '',
-    recipient_email: '',
-    recipient_phone: '',
-    delivery_address: '',
-    postal_number: '',
-    city: '',
-    county: '', // Added county field
-  });
-  const [paymentMethod, setPaymentMethod] = useState('');
+  const { loggedInUser } = useContext(LogInContext);
+  const navigate = useNavigate();
+
+  const [creditCards, setCreditCards] = useState([]);
+  const [selectedCard, setSelectedCard] = useState('');
+  const [userInfo, setUserInfo] = useState(null);
+  const [phoneNumber, setPhoneNumber] = useState(loggedInUser?.phoneNumber || '');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      if (!loggedInUser || !loggedInUser.id || !loggedInUser.token) {
+        setError('User is not logged in.');
+        return;
+      }
+
+      try {
+        const response = await axios.get(`http://localhost:5000/users/${loggedInUser.id}`, {
+          headers: {
+            Authorization: `Bearer ${loggedInUser.token}`,
+          },
+        });
+
+        if (response.status === 200 && response.data) {
+          setUserInfo(response.data.data);
+          setError('');
+        } else {
+          setError('Failed to fetch user details.');
+        }
+      } catch (err) {
+        console.error('Error fetching user details:', err.message);
+        setError('An error occurred while fetching user details.');
+      }
+    };
+
+    const fetchCreditCards = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/api/card', {
+          headers: {
+            Authorization: `Bearer ${loggedInUser.token}`,
+          },
+        });
+        if (response.status === 200) {
+          setCreditCards(response.data.value || []);
+        }
+      } catch (err) {
+        console.error('Error fetching credit cards:', err.message);
+        setError('Failed to fetch credit cards.');
+      }
+    };
+
+    fetchUserInfo();
+    fetchCreditCards();
+  }, [loggedInUser]);
 
   const calculateTotal = () =>
-    cart.reduce((total, item) => total + parseFloat(item.price.replace('$', '')) * item.amount, 0).toFixed(2);
+    cart.reduce((total, item) => total + item.price * item.amount, 0).toFixed(2);
 
-  const handlePlaceOrder = () => {
-    if (!savedAddress || !paymentMethod) {
-      alert('Please provide a delivery address and select a payment method.');
+  const updateCardBalance = async (cardNumber, amount) => {
+    const apiPath = `http://localhost:8080/api/card/balance/${cardNumber}/${amount}`;
+    console.log(`Final API Path: ${apiPath}`);
+
+    try {
+      const response = await axios.put(
+        apiPath,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${loggedInUser.token}`,
+          },
+        }
+      );
+
+      console.log('API Response:', response.data);
+
+      if (response.status === 200 && response.data.status === 200) {
+        alert('Card balance updated successfully.');
+      } else {
+        throw new Error('Failed to update card balance.');
+      }
+    } catch (err) {
+      console.error('Error updating card balance:', err.message);
+      setError('An error occurred while updating the card balance.');
+    }
+  };
+
+  const handlePay = async () => {
+    if (!userInfo?.address || !userInfo?.zipcode || !userInfo?.country || !selectedCard) {
+      setError('Please complete all fields and select a credit card before proceeding.');
       return;
     }
 
-    alert(`Order placed successfully!\n
-      Address: ${JSON.stringify(savedAddress, null, 2)}\n
-      Payment Method: ${paymentMethod}`);
-  };
+    setError('');
+    setIsLoading(true);
 
-  const handleSaveAddress = () => {
-    const { recipient_name, recipient_email, recipient_phone, delivery_address, postal_number, city, county } = newAddress;
-    if (!recipient_name || !recipient_email || !recipient_phone || !delivery_address || !postal_number || !city || !county) {
-      alert('Please fill in all fields.');
-      return;
+    const totalAmount = parseFloat(calculateTotal());
+
+    const paymentPayload = {
+      id: 0,
+      order_id: `ORD-${Date.now()}`,
+      cardNumber: selectedCard,
+      paidDate: new Date().toISOString(),
+      amount: totalAmount,
+    };
+
+    try {
+      const response = await fetch('http://localhost:8081/api/payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${loggedInUser.token}`,
+        },
+        body: JSON.stringify(paymentPayload),
+      });
+
+      if (response.ok) {
+        alert('Payment processed successfully!');
+        await updateCardBalance(selectedCard, -totalAmount);
+        navigate('/payment-history');
+      } else {
+        throw new Error('Payment failed.');
+      }
+    } catch (err) {
+      console.error('Payment error:', err.message);
+      setError('Payment failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-
-    setSavedAddress(newAddress);
-    setAddressPopup(false);
   };
 
-  const handleEditAddress = () => {
-    setAddressPopup(true);
+  const handleGoBack = () => {
+    navigate('/cart');
   };
 
   return (
-    <div className="checkout-page">
-      <h1 className="checkout-title">Checkout</h1>
-      <div className="checkout-container">
-        {/* Order Summary */}
-        <div className="order-summary">
-          <h2 className="section-title">Order Summary</h2>
-          <ul className="cart-items">
-            {cart.map((item, index) => (
-              <li key={index} className="cart-item">
-                <img src={item.image} alt={item.name} className="cart-item-image" />
-                <div className="cart-item-details">
-                  <h3 className="cart-item-name">{item.name}</h3>
-                  <p className="cart-item-price">Price: {item.price}</p>
-                  <p className="cart-item-quantity">Quantity: {item.amount}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <div className="cart-total">
-            <h3>Total: <span>${calculateTotal()}</span></h3>
+    <div className="checkout-page-container">
+      {/* Go Back Button */}
+      <button className="checkout-back-button" onClick={handleGoBack}>
+        Go Back
+      </button>
+
+      <h1 className="checkout-page-title">Checkout</h1>
+      <div className="checkout-main-content">
+        {/* Cart Summary */}
+        <div className="checkout-cart-summary">
+          <h2>Cart Items</h2>
+          {cart.map((item, index) => (
+            <div key={index} className="checkout-cart-item">
+              <p>
+                <strong>{item.name}</strong> x {item.amount} - ${item.price.toFixed(2)}
+              </p>
+            </div>
+          ))}
+          <h3 className="checkout-cart-total">Total: ${calculateTotal()}</h3>
+        </div>
+
+        {/* Right Section: Delivery Info + Credit Card Selection */}
+        <div className="checkout-right">
+          <div className="checkout-delivery-info">
+            <h2>Shipping Address</h2>
+            {userInfo?.address ? (
+              <div>
+                <p><strong>Zipcode:</strong> {userInfo.zipcode}</p>
+                <p><strong>Address:</strong> {userInfo.address}</p>
+                <p><strong>Country:</strong> {userInfo.country}</p>
+              </div>
+            ) : (
+              <p>No address available. Please update your address in settings.</p>
+            )}
+          </div>
+
+          <div className="checkout-credit-card-container">
+            <h2>Select Credit Card</h2>
+            <div className="checkout-credit-card-list">
+              {creditCards.length > 0 ? (
+                creditCards.map((card) => (
+                  <div key={card.cardNumber} className="checkout-credit-card-item">
+                    <input
+                      type="radio"
+                      id={`card-${card.cardNumber}`}
+                      name="selectedCard"
+                      value={card.cardNumber}
+                      checked={selectedCard === card.cardNumber}
+                      onChange={(e) => setSelectedCard(e.target.value)}
+                    />
+                    <label htmlFor={`card-${card.cardNumber}`}>
+                      <span>Card ending in {card.cardNumber.slice(-4)}</span>
+                      <span>Balance: ${card.balance.toFixed(2)}</span>
+                    </label>
+                  </div>
+                ))
+              ) : (
+                <p>No credit cards available. Please add one in your settings.</p>
+              )}
+            </div>
           </div>
         </div>
-
-        {/* Delivery Address */}
-        <div className="checkout-details">
-          <h2 className="section-title">Delivery Address</h2>
-          {savedAddress ? (
-            <div className="address-summary">
-              <p><strong>Name:</strong> {savedAddress.recipient_name}</p>
-              <p><strong>Email:</strong> {savedAddress.recipient_email}</p>
-              <p><strong>Phone:</strong> {savedAddress.recipient_phone}</p>
-              <p><strong>Address:</strong> {savedAddress.delivery_address}</p>
-              <p><strong>Postal Code:</strong> {savedAddress.postal_number}</p>
-              <p><strong>City:</strong> {savedAddress.city}</p>
-              <p><strong>County:</strong> {savedAddress.county}</p>
-              <button className="btn-secondary" onClick={handleEditAddress}>Edit Address</button>
-            </div>
-          ) : (
-            <button className="btn-primary" onClick={() => setAddressPopup(true)}>Add Address</button>
-          )}
-
-          {/* Payment Method */}
-          <h2 className="section-title">Payment Method</h2>
-          <select
-            value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-            className="payment-method-select"
-          >
-            <option value="">Select a payment method</option>
-            <option value="Credit Card">Credit Card</option>
-            <option value="Debit Card">Debit Card</option>
-            <option value="PayPal">PayPal</option>
-            <option value="Cash on Delivery">Cash on Delivery</option>
-          </select>
-        </div>
-
-        <button onClick={handlePlaceOrder} className="btn-primary place-order-button">
-          Place Order
-        </button>
       </div>
 
-      {addressPopup && (
-        <div className="address-popup">
-          <div className="popup-content">
-            <h2>Enter Delivery Address</h2>
-            <label>
-              Name
-              <input
-                type="text"
-                value={newAddress.recipient_name}
-                onChange={(e) => setNewAddress({ ...newAddress, recipient_name: e.target.value })}
-              />
-            </label>
-            <label>
-              Email
-              <input
-                type="email"
-                value={newAddress.recipient_email}
-                onChange={(e) => setNewAddress({ ...newAddress, recipient_email: e.target.value })}
-              />
-            </label>
-            <label>
-              Phone
-              <input
-                type="text"
-                value={newAddress.recipient_phone}
-                onChange={(e) => setNewAddress({ ...newAddress, recipient_phone: e.target.value })}
-              />
-            </label>
-            <label>
-              Address
-              <input
-                type="text"
-                value={newAddress.delivery_address}
-                onChange={(e) => setNewAddress({ ...newAddress, delivery_address: e.target.value })}
-              />
-            </label>
-            <label>
-              Postal Code
-              <input
-                type="number"
-                value={newAddress.postal_number}
-                onChange={(e) => setNewAddress({ ...newAddress, postal_number: e.target.value })}
-              />
-            </label>
-            <label>
-              City
-              <input
-                type="text"
-                value={newAddress.city}
-                onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
-              />
-            </label>
-            <label>
-              County
-              <input
-                type="text"
-                value={newAddress.county}
-                onChange={(e) => setNewAddress({ ...newAddress, county: e.target.value })}
-              />
-            </label>
-            <div className="popup-actions">
-              <button className="btn-primary" onClick={handleSaveAddress}>Save Address</button>
-              <button className="btn-danger" onClick={() => setAddressPopup(false)}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Pay Button */}
+      {error && <p className="checkout-error-message">{error}</p>}
+      <button
+        className="checkout-pay-button"
+        onClick={handlePay}
+        disabled={isLoading || !selectedCard}
+      >
+        {isLoading ? 'Processing...' : 'Pay'}
+      </button>
     </div>
   );
 };

@@ -63,14 +63,12 @@ body {
 }
 
 .product-card {
-  background: #f4f4f4;
-  padding: 20px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  width: 250px;
-  transition: transform 0.3s, box-shadow 0.3s;
-  cursor: pointer;
+  padding: 20px;
+  text-align: center; /* Center align content horizontally */
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .product-card:hover {
@@ -242,6 +240,8 @@ body {
 }
 
 .btn-primary {
+  display: block; /* Makes the button take the full width of its container */
+  margin: 20px auto; /* Centers the button horizontally */
   padding: 10px 20px;
   background-color: #007bff;
   color: #fff;
@@ -249,6 +249,7 @@ body {
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s;
+  text-align: center;
 }
 
 .btn-primary:hover {
@@ -1940,4 +1941,227 @@ body {
 
 .checkout-button:hover {
   background-color: #40a9ff;
+}
+
+
+.checkout-page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  position: relative; /* To position the Go Back button */
+}
+
+/* Go Back Button */
+.checkout-back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 10px 20px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.checkout-back-button:hover {
+  background-color: #5a6268;
+}
+
+/* Title */
+.checkout-page-title {
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Main Layout */
+.checkout-main-content {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+}
+
+/* Cart Summary */
+.checkout-cart-summary {
+  flex: 2;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: 100%;
+}
+
+/* Right Section */
+.checkout-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+}
+
+/* Delivery Information */
+.checkout-delivery-info {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex: 1;
+}
+
+.checkout-input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+/* Credit Card Options */
+.checkout-credit-card-container {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex: 1;
+}
+
+.checkout-credit-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.checkout-credit-card-item {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: box-shadow 0.3s;
+}
+
+.checkout-credit-card-item:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: #f1f1f1;
+}
+
+.checkout-credit-card-item input[type='radio'] {
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+/* Pay Button */
+.checkout-pay-button {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.checkout-pay-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.checkout-pay-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+/* Error Message */
+.checkout-error-message {
+  color: red;
+  font-size: 1rem;
+  margin-top: 10px;
+}
+
+/* General page container */
+.user-settings-container {
+  font-family: 'Arial', sans-serif;
+  margin: 20px auto;
+  max-width: 800px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+/* Page title */
+.user-settings-container h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Error message */
+.error-message {
+  color: #e74c3c;
+  font-weight: bold;
+  margin: 10px 0;
+  text-align: center;
+}
+
+/* User details sections */
+.user-details {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.user-details-section {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.user-details-section h3 {
+  color: #2c3e50;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+}
+
+.user-details-section p {
+  margin: 5px 0;
+  color: #555;
+}
+
+/* Highlighted fields */
+.user-details-section p strong {
+  color: #2c3e50;
+}
+
+/* Logout button */
+.btn-logout {
+  display: block;
+  margin: 20px auto;
+  padding: 10px 20px;
+  background-color: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.btn-logout:hover {
+  background-color: #c0392b;
 }

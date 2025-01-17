@@ -33,7 +33,7 @@ const ProductsPage = () => {
         const data = await response.json();
 
         if (Array.isArray(data) && Array.isArray(data[0])) {
-          setProducts(data[0]); // Extract the first element containing the product array
+          setProducts(data[0]);
         } else {
           setError('Unexpected response format from API.');
         }
@@ -47,7 +47,7 @@ const ProductsPage = () => {
   }, [loggedInUser]);
 
   const handleAddToCart = (product) => {
-    addToCart({ ...product, amount: 1 }); // Add product to the cart with a default quantity of 1
+    addToCart({ ...product, amount: 1 });
     alert(`${product.name} added to cart!`);
   };
 
@@ -76,7 +76,7 @@ const ProductsPage = () => {
       }
 
       const data = await response.json();
-      setSearchResult(data); // Set the single product object
+      setSearchResult(data);
       setError('');
     } catch (error) {
       setSearchResult(null);
@@ -86,9 +86,9 @@ const ProductsPage = () => {
   };
 
   const handleCancelSearch = () => {
-    setSearchResult(null); // Clear the search result
-    setSearchId(''); // Clear the search input field
-    setError(''); // Clear any error messages
+    setSearchResult(null);
+    setSearchId('');
+    setError('');
   };
 
   return (

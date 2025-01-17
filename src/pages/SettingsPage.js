@@ -7,6 +7,7 @@ const SettingsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { loggedInUser, handleLogout } = useContext(LogInContext);
   const [error, setError] = useState('');
+  const [userInfo, setUserInfo] = useState(null);
   const [creditCards, setCreditCards] = useState([]);
   const [isEditAccountModalOpen, setIsEditAccountModalOpen] = useState(false);
   const [newEmail, setNewEmail] = useState('');
@@ -40,6 +41,31 @@ const SettingsPage = () => {
   };
 
   useEffect(() => {
+    const fetchUserDetails = async () => {
+      if (!loggedInUser || !loggedInUser.id || !loggedInUser.token) {
+        setError('User is not logged in.');
+        return;
+      }
+  
+      try {
+        const response = await axios.get(`http://localhost:5000/users/${loggedInUser.id}`, {
+          headers: {
+            Authorization: `Bearer ${loggedInUser.token}`,
+          },
+        });
+  
+        if (response.status === 200 && response.data) {
+          setUserInfo(response.data.data);
+          setError('');
+        } else {
+          setError('Failed to fetch user details.');
+        }
+      } catch (err) {
+        console.error('Error fetching user details:', err.message);
+        setError('An error occurred while fetching user details.');
+      }
+    };
+
     const fetchCreditCards = async () => {
       if (!loggedInUser) return;
   
@@ -61,7 +87,7 @@ const SettingsPage = () => {
         setError('An error occurred while fetching credit cards.');
       }
     };
-  
+    fetchUserDetails();
     fetchCreditCards();
   }, [loggedInUser]);
 
@@ -310,7 +336,6 @@ const SettingsPage = () => {
     }
   };  
 
-
   const handleDeleteProfile = async () => {
     if (!loggedInUser || !loggedInUser.token || !loggedInUser.email) {
       alert('User email or token is missing. Please log in again.');
@@ -374,6 +399,44 @@ const SettingsPage = () => {
       setError('An error occurred while deleting the card. Please try again.');
     }
   };
+
+  const handleUpdateAddress = async () => {
+    if (!loggedInUser || !loggedInUser.token) {
+      setError('You need to log in to update your address.');
+      return;
+    }
+  
+    try {
+      const payload = {
+        zipcode: userInfo.zipcode,
+        address: userInfo.address,
+        country: userInfo.country,
+      };
+  
+      const response = await axios.put(
+        `http://localhost:5000/users/${loggedInUser.id}/address`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${loggedInUser.token}`,
+          },
+        }
+      );
+  
+      if (response.status === 200) {
+        alert('Address updated successfully.');
+        setUserInfo((prevInfo) => ({
+          ...prevInfo,
+          ...payload,
+        }));
+      } else {
+        setError('Failed to update address.');
+      }
+    } catch (error) {
+      console.error('Error updating address:', error.message);
+      setError('An error occurred while updating your address. Please try again.');
+    }
+  };  
   
   const handleToggleCardStatus = async (cardId, currentStatus) => {
     if (!loggedInUser || !loggedInUser.token) {
@@ -449,19 +512,31 @@ const SettingsPage = () => {
     <div className="user-profile-container">
       <div className="profile-left">
         <div className="profile-card">
-          <img
-            src="https://via.placeholder.com/100"
-            alt="Profile"
-            className="avatar"
-          />
           <div className="profile-info">
-            <p>{loggedInUser.email || 'example@example.com'}</p>
+            {userInfo ? (
+              <>
+                <h2>User information</h2>
+                <p><strong>Email:</strong> {userInfo.email}</p>
+                <p><strong>Gender:</strong> {userInfo.gender}</p>
+                <p><strong>Birthdate:</strong> {userInfo.birthdate}</p>
+                <h2>Contact information</h2>
+                <p><strong>Telephone:</strong> {userInfo.telephone}</p>
+                <h2>Shipping address</h2>
+                <p><strong>Zipcode:</strong> {userInfo.zipcode}</p>
+                <p><strong>Address:</strong> {userInfo.address}</p>
+                <p><strong>Country:</strong> {userInfo.country}</p>
+                
+              </>
+            ) : (
+              <p>{loggedInUser.email || 'example@example.com'}</p>
+            )}
             <button className="btn-primary" onClick={openEditAccountModal}>
               Edit Account
             </button>
             {isAccountDeactivated === null ? (
-              <p>Loading account status...</p>
-            ) : isAccountDeactivated ? (
+              <button className="btn-secondary" onClick={handleDeactivateAccount}>
+                Deactivate Account
+              </button>            ) : isAccountDeactivated ? (
               <button className="btn-primary" onClick={handleReactivateAccount}>
                 Reactivate Account
               </button>
@@ -541,8 +616,8 @@ const SettingsPage = () => {
           <div className="modal">
             <h2>Deactivate Account</h2>
             <p>Are you sure you want to deactivate your account? This action can be undone later.</p>
-            <div className="modal-buttons">
-              <button className="btn-secondary" onClick={handleDeactivateAccount}>
+            <div className="button-container">
+             <button className="btn-secondary" onClick={handleDeactivateAccount}>
                 Yes, Deactivate
               </button>
               <button
@@ -636,8 +711,8 @@ const SettingsPage = () => {
     </div>
   </div>
 </div>
-      {/* Edit Account Modal */}
-      {isEditAccountModalOpen && (
+       {/* Edit Account Modal */}
+       {isEditAccountModalOpen && (
         <div className="modal-overlay">
           <div className="modal">
             <h2>Edit Account</h2>
@@ -645,7 +720,7 @@ const SettingsPage = () => {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                handleEditAccount();
+                // Handle edit account logic here
               }}
             >
               <label>
@@ -657,37 +732,25 @@ const SettingsPage = () => {
                 />
               </label>
               <div>
-                {!showPasswordFields ? (
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => setShowPasswordFields(true)}
-                  >
-                    Change Password
-                  </button>
-                ) : (
-                  <>
-                    <label>
-                      New Password:
-                      <input
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                      />
-                    </label>
-                    <label>
-                      Repeat Password:
-                      <input
-                        type="password"
-                        value={repeatPassword}
-                        onChange={(e) => setRepeatPassword(e.target.value)}
-                      />
-                    </label>
-                  </>
-                )}
+                <label>
+                  New Password:
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </label>
+                <label>
+                  Repeat Password:
+                  <input
+                    type="password"
+                    value={repeatPassword}
+                    onChange={(e) => setRepeatPassword(e.target.value)}
+                  />
+                </label>
               </div>
-              <div className="modal-buttons">
-                <button type="submit" className="btn-primary">
+              <div className="button-container">
+              <button type="submit" className="btn-primary">
                   Save Changes
                 </button>
                 <button type="button" className="btn-secondary" onClick={closeEditAccountModal}>

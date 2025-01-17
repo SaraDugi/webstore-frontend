@@ -11,28 +11,31 @@ import CheckoutPage from './pages/CheckoutPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AboutUsPage from './pages/AboutusPage';
-import PaymentHistory from './pages/PaymentHistory'; 
+import PaymentHistory from './pages/PaymentHistory';
 import { LogInProvider, LogInContext } from './contexts/LoginContext';
+import { CartProvider } from './contexts/CartContext'; // Added CartProvider to wrap the app for cart functionality
 
 const App = () => {
   return (
     <LogInProvider>
-      <Router>
-        <Header />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/products" element={<ProductsPage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/about" element={<AboutUsPage />} />
-          <Route path="/orders" element={<PrivateRoute component={UserOrders} />} />
-          <Route path="/settings" element={<PrivateRoute component={SettingsPage} />} />
-          <Route path="/payment-history" element={<PrivateRoute component={PaymentHistory} />} /> {/* Add the new route */}
-        </Routes>
-        <Footer />
-      </Router>
+      <CartProvider>
+        <Router>
+          <Header />
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/about" element={<AboutUsPage />} />
+            <Route path="/orders" element={<PrivateRoute component={UserOrders} />} />
+            <Route path="/settings" element={<PrivateRoute component={SettingsPage} />} />
+            <Route path="/payment-history" element={<PrivateRoute component={PaymentHistory} />} />
+          </Routes>
+          <Footer />
+        </Router>
+      </CartProvider>
     </LogInProvider>
   );
 };
