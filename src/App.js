@@ -13,7 +13,8 @@ import RegisterPage from './pages/RegisterPage';
 import AboutUsPage from './pages/AboutusPage';
 import PaymentHistory from './pages/PaymentHistory';
 import { LogInProvider, LogInContext } from './contexts/LoginContext';
-import { CartProvider } from './contexts/CartContext'; // Added CartProvider to wrap the app for cart functionality
+import { CartProvider } from './contexts/CartContext';
+import UsersPage from './pages/UsersPage';
 
 const App = () => {
   return (
@@ -24,6 +25,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/products" element={<ProductsPage />} />
+            <Route path="/users" element={<UsersPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/login" element={<LoginPage />} />
