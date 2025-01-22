@@ -30,10 +30,11 @@ const CartPage = () => {
         <div className="cart-container">
           <ul className="cart-items">
             {cart.map((item, index) => (
-              <li key={index} className="cart-item">
+              <li key={item.id} className="cart-item">
                 <div className="cart-item-details">
                   <h3 className="cart-item-name">{item.name}</h3>
                   <p className="cart-item-price">Price: ${item.price}</p>
+                  <p className="cart-item-id">Product ID: {item.id}</p> {/* Display product ID */}
                   <div className="quantity-wrapper">
                     <label htmlFor={`quantity-${index}`} className="quantity-label">
                       Quantity:

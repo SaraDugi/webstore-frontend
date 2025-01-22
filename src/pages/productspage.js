@@ -47,7 +47,7 @@ const ProductsPage = () => {
   }, [loggedInUser]);
 
   const handleAddToCart = (product) => {
-    addToCart({ ...product, amount: 1 });
+    addToCart({ id: product._id, ...product, amount: 1 });
     alert(`${product.name} added to cart!`);
   };
 

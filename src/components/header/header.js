@@ -57,21 +57,25 @@ const Header = () => {
                 Products
               </Link>
             </li>
-            {role === 'admin' && (
-              <>
+            {role === 'admin' && (              <>
                 <li className="nav-item">
                   <Link to="/dashboard" className="nav-link">
                     Dashboard
                   </Link>
                 </li>
                 <li className="nav-item">
-                  <Link to="/user-management" className="nav-link">
+                  <Link to="/users" className="nav-link">
                     User Management
                   </Link>
                 </li>
                 <li className="nav-item">
                   <Link to="/catalog-management" className="nav-link">
-                    Catalog Management
+                    Item Management
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link to="/coupon-management" className="nav-link">
+                    Coupon Management
                   </Link>
                 </li>
               </>
@@ -88,7 +92,7 @@ const Header = () => {
                   <>
                     <li>
                       <Link to="/orders" className="dropdown-link">
-                        My Orders
+                        All Orders
                       </Link>
                     </li>
                     <li>

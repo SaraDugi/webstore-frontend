@@ -13,7 +13,6 @@ const CheckoutPage = () => {
   const [creditCards, setCreditCards] = useState([]);
   const [selectedCard, setSelectedCard] = useState('');
   const [userInfo, setUserInfo] = useState(null);
-  const [phoneNumber, setPhoneNumber] = useState(loggedInUser?.phoneNumber || '');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -66,9 +65,47 @@ const CheckoutPage = () => {
   const calculateTotal = () =>
     cart.reduce((total, item) => total + item.price * item.amount, 0).toFixed(2);
 
+  const createOrder = async () => {
+    const orderPayload = {
+      customer_id: loggedInUser.id,
+      total_amount: parseFloat(calculateTotal()),
+      status: 'open',
+      products: cart.map((item) => ({
+        product_id: item.id,
+        product_name: item.name,
+        product_price: item.price,
+        quantity: item.amount,
+      })),
+    };
+
+    console.log(JSON.stringify(orderPayload, null, 2));
+
+    try {
+      const response = await fetch('http://localhost:4050/order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${loggedInUser.token}`,
+        },
+        body: JSON.stringify(orderPayload),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to create the order. Server response: ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('Order created successfully:', result);
+      return result.order_id;
+    } catch (err) {
+      console.error('Error creating order:', err.message);
+      throw new Error('Failed to create the order. Please try again.');
+    }
+  };
+
   const updateCardBalance = async (cardNumber, amount) => {
     const apiPath = `http://localhost:8080/api/card/balance/${cardNumber}/${amount}`;
-    console.log(`Final API Path: ${apiPath}`);
 
     try {
       const response = await axios.put(
@@ -81,16 +118,14 @@ const CheckoutPage = () => {
         }
       );
 
-      console.log('API Response:', response.data);
-
-      if (response.status === 200 && response.data.status === 200) {
-        alert('Card balance updated successfully.');
-      } else {
+      if (response.status !== 200) {
         throw new Error('Failed to update card balance.');
       }
+
+      console.log('Card balance updated successfully.');
     } catch (err) {
       console.error('Error updating card balance:', err.message);
-      setError('An error occurred while updating the card balance.');
+      throw new Error('Failed to update the card balance.');
     }
   };
 
@@ -103,36 +138,15 @@ const CheckoutPage = () => {
     setError('');
     setIsLoading(true);
 
-    const totalAmount = parseFloat(calculateTotal());
-
-    const paymentPayload = {
-      id: 0,
-      order_id: `ORD-${Date.now()}`,
-      cardNumber: selectedCard,
-      paidDate: new Date().toISOString(),
-      amount: totalAmount,
-    };
-
     try {
-      const response = await fetch('http://localhost:8081/api/payment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${loggedInUser.token}`,
-        },
-        body: JSON.stringify(paymentPayload),
-      });
+      const orderId = await createOrder();
+      const totalAmount = parseFloat(calculateTotal());
+      await updateCardBalance(selectedCard, -totalAmount);
 
-      if (response.ok) {
-        alert('Payment processed successfully!');
-        await updateCardBalance(selectedCard, -totalAmount);
-        navigate('/payment-history');
-      } else {
-        throw new Error('Payment failed.');
-      }
+      alert(`Order ${orderId} created and payment processed successfully!`);
+      navigate('/payment-history');
     } catch (err) {
-      console.error('Payment error:', err.message);
-      setError('Payment failed. Please try again.');
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -144,14 +158,12 @@ const CheckoutPage = () => {
 
   return (
     <div className="checkout-page-container">
-      {/* Go Back Button */}
       <button className="checkout-back-button" onClick={handleGoBack}>
         Go Back
       </button>
 
       <h1 className="checkout-page-title">Checkout</h1>
       <div className="checkout-main-content">
-        {/* Cart Summary */}
         <div className="checkout-cart-summary">
           <h2>Cart Items</h2>
           {cart.map((item, index) => (
@@ -164,7 +176,6 @@ const CheckoutPage = () => {
           <h3 className="checkout-cart-total">Total: ${calculateTotal()}</h3>
         </div>
 
-        {/* Right Section: Delivery Info + Credit Card Selection */}
         <div className="checkout-right">
           <div className="checkout-delivery-info">
             <h2>Shipping Address</h2>
@@ -207,7 +218,6 @@ const CheckoutPage = () => {
         </div>
       </div>
 
-      {/* Pay Button */}
       {error && <p className="checkout-error-message">{error}</p>}
       <button
         className="checkout-pay-button"
