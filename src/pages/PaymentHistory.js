@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { LogInContext } from '../contexts/LoginContext';
 import '../styles/paymenthistory.css';
@@ -12,8 +12,8 @@ const PaymentHistory = () => {
   const [error, setError] = useState(null);
   const [statistics, setStatistics] = useState(null);
   const [isStatisticsModalOpen, setIsStatisticsModalOpen] = useState(false);
-
-  const fetchPayments = async () => {
+  
+  const fetchPayments = useCallback(async () => {
     if (!loggedInUser || !loggedInUser.token) {
       setError('You must be logged in to view payment history.');
       setLoading(false);
@@ -39,9 +39,9 @@ const PaymentHistory = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchStatistics = async () => {
+  }, [loggedInUser, setError]);
+  
+  const fetchStatistics = useCallback(async () => {
     if (!loggedInUser || !loggedInUser.token) {
       setError('You must be logged in to view statistics.');
       return;
@@ -63,7 +63,7 @@ const PaymentHistory = () => {
       console.error('Error fetching statistics:', err.message);
       setError('An error occurred while fetching statistics. Please try again later.');
     }
-  };
+  }, [loggedInUser]);
 
   const searchPayment = async () => {
     if (!searchQuery) {
@@ -165,7 +165,7 @@ const PaymentHistory = () => {
   useEffect(() => {
     fetchPayments();
     fetchStatistics();
-  }, [loggedInUser]);
+  }, [fetchPayments, fetchStatistics]);
 
   const openStatisticsModal = () => {
     setIsStatisticsModalOpen(true);
@@ -182,9 +182,11 @@ const PaymentHistory = () => {
   return (
     <div className="payment-history">
       <h1>Payment History</h1>
+      {error && <div className="error-message">{error}</div>}
       <div className="content-container">
         {/* Table Section */}
-        <div className="table-container">               
+        <div className="table-container"> 
+          <div className="search">              
             <div className="search-container">
               <input
               type="text"
@@ -192,20 +194,21 @@ const PaymentHistory = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <button onClick={searchPayment} className="btn-primary">
+            <button onClick={searchPayment} className="btn-search">
               Search
             </button>
             {searchResult && (
-              <button onClick={clearSearch} className="btn-secondary">
+              <button onClick={clearSearch} className="btn-clear">
                 Clear Search
               </button>
             )}
+            </div>
           </div>
           <div className="table-header">
             <button className="btn-danger delete-all-button" onClick={deleteAllPayments}>
               Delete All Payments
             </button>
-            <button className="btn-primary" onClick={openStatisticsModal}>
+            <button className="btn-statistics" onClick={openStatisticsModal}>
               View Statistics
             </button>
           </div>
@@ -245,8 +248,8 @@ const PaymentHistory = () => {
         </div>
       </div>
       {isStatisticsModalOpen && statistics && (
-        <div className="modal-overlay">
-          <div className="modal">
+        <div className="modal-paymenthistory">
+          <div className="modal-payment">
             <h2>Statistics</h2>
             <p><strong>Total Amount Spent:</strong> ${statistics.totalSpentMoney.toFixed(2)}</p>
             <p><strong>Number of Payments:</strong> {statistics.numberOfPayments}</p>

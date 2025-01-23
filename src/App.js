@@ -17,6 +17,7 @@ import ItemManagementPage from './pages/ItemsManagemnetPage';
 import ReportsPage from './pages/ReportsPage';
 import DashboardPage from './pages/DashboardPage';
 import OrderDetails from './pages/OrderDetailsPage';
+import ShipmentsPage from './pages/ShipmentsPage';
 import { LogInProvider, LogInContext } from './contexts/LoginContext';
 import { CartProvider } from './contexts/CartContext';
 
@@ -42,6 +43,7 @@ const App = () => {
             <Route path="/catalog-management" element={<PrivateRoute component={ItemManagementPage} />} />
             <Route path="/dashboard" element={<PrivateRoute component={DashboardPage} />} />
             <Route path="/reports" element={<PrivateRoute component={ReportsPage} />} />
+            <Route path="/shipments" element={<PrivateRoute component={ShipmentsPage} />} />
           </Routes>
           <Footer />
         </Router>

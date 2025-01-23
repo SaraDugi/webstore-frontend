@@ -12,7 +12,7 @@ const DashboardPage = () => {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const response = await fetch('http://localhost:28763/logs');
+        const response = await fetch('https://log-service-02ko.onrender.com/logs');
 
         if (!response.ok) {
           throw new Error(`Error fetching logs: ${response.status} - ${response.statusText}`);
@@ -61,7 +61,7 @@ const DashboardPage = () => {
 
   const fetchStatistics = async () => {
     try {
-      const response = await fetch('http://localhost:28770/statistics');
+      const response = await fetch('https://statistics-service-1.onrender.com/api/statistics');
 
       if (!response.ok) {
         throw new Error(`Error fetching statistics: ${response.status} - ${response.statusText}`);

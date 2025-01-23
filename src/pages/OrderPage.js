@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { LogInContext } from '../contexts/LoginContext';
 import '../styles/orderspage.css';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const UserOrders = () => {
   const { loggedInUser } = useContext(LogInContext);
@@ -11,8 +11,8 @@ const UserOrders = () => {
   const [error, setError] = useState('');
   const [searchId, setSearchId] = useState('');
   const [searchResult, setSearchResult] = useState(null);
-  const { orderId } = useParams();
   const navigate = useNavigate();
+  const [selectedShipment, setSelectedShipment] = useState(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -40,7 +40,6 @@ const UserOrders = () => {
         const textResponse = await response.text();
         try {
           const result = JSON.parse(textResponse);
-          console.log('Fetched Orders:', result);
           setOrders(result || []);
         } catch (parseError) {
           console.error('JSON Parsing Error:', parseError.message, 'Response:', textResponse);
@@ -98,66 +97,125 @@ const UserOrders = () => {
     }
   };
 
+  const closeDetailsModal = () => {
+    setSelectedShipment(null);
+  };
+
   const clearSearch = () => {
     setSearchId('');
     setSearchResult(null);
     setError('');
   };
 
-  const handleTrackOrder = (order) => {
-    setSelectedOrder(order); // Set the selected order details
-  };
-
+  const handleTrackOrder = async (order) => {
+    try {
+      // Ensure the order object is valid and contains an id
+      console.log('Order object:', order);
+  
+      if (!order || !order.id) {
+        setError('Invalid order object or missing id.');
+        return;
+      }
+  
+      const orderId = order.id; // Use the id from the order object
+      const url = `http://localhost:9000/api/shipments/${orderId}`;
+      console.log(`Fetching shipment details from URL: ${url}`); // Log the actual request URL
+  
+      const response = await fetch(url, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${loggedInUser.token}`,
+        },
+      });
+  
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError(`No shipping data available for order ${orderId}`);
+          return;
+        }
+        throw new Error(`Failed to fetch shipment details for order ${orderId}`);
+      }
+  
+      const shipmentData = await response.json();
+  
+      if (!shipmentData || Object.keys(shipmentData).length === 0) {
+        setError(`No shipping data available for order ${orderId}`);
+        return;
+      }
+  
+      setSelectedShipment(shipmentData); // Update state with shipment details
+      setError('');
+    } catch (err) {
+      console.error('Error fetching shipment details:', err.message);
+      setError('An error occurred while fetching shipment details. Please try again.');
+    }
+  };  
+  
   const handleUpdateOrder = async (order) => {
     const updatedOrder = {
-      id: order.id,
-      customer_id: order.customer_id,
-      total_amount: 700, // Example updated value
-      status: 'shipped', // Example updated status
+      id: "3", // Ensure this matches an existing order in `orders2`
+      customer_id: "678bd3028ba32a4b61bf72d0",
+      total_amount: 600,
+      status: "pending",
       products: [
         {
-          product_id: '6788066ca9678f377e2b9431',
-          product_name: 'Updated Speaker',
-          product_price: 120,
-          quantity: 1,
+          product_id: "6788066ca9678f377e2b9431",
+          product_name: "Speaker",
+          product_price: 100,
+          quantity: 2,
         },
       ],
     };
-
+  
     try {
-      const response = await fetch(`http://localhost:4050/order`, {
-        method: 'PUT',
+      // Verify the order exists in the database
+      const checkResponse = await fetch(`http://localhost:4050/order/${updatedOrder.id}`, {
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${loggedInUser.token}`,
+          Accept: "application/json",
+        },
+      });
+  
+      if (!checkResponse.ok) {
+        if (checkResponse.status === 404) {
+          throw new Error(`Order with ID ${updatedOrder.id} does not exist.`);
+        }
+        throw new Error("Failed to verify order existence.");
+      }
+  
+      // Proceed with the update
+      const response = await fetch(`http://localhost:4050/order`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${loggedInUser.token}`,
         },
         body: JSON.stringify(updatedOrder),
       });
-
-      const textResponse = await response.text();
-      try {
-        const result = JSON.parse(textResponse);
-        console.log('Order updated:', result);
-
-        // Update the local state with the updated order
-        setOrders((prevOrders) =>
-          prevOrders.map((o) =>
-            o.id === order.id
-              ? { ...o, total_amount: updatedOrder.total_amount, status: updatedOrder.status }
-              : o
-          )
-        );
-        alert(`Order ${order.id} updated successfully!`);
-      } catch (parseError) {
-        console.error('JSON Parsing Error:', parseError.message, 'Response:', textResponse);
-        throw new Error('Response is not valid JSON.');
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to update order: ${response.status} - ${errorText}`);
       }
+  
+      const result = await response.json();
+      console.log("Order updated successfully:", result);
+  
+      setOrders((prevOrders) =>
+        prevOrders.map((o) =>
+          o.id === updatedOrder.id
+            ? { ...o, total_amount: updatedOrder.total_amount, status: updatedOrder.status }
+            : o
+        )
+      );
+      alert(`Order ${updatedOrder.id} updated successfully!`);
     } catch (err) {
-      console.error('Update Order Error:', err.message);
+      console.error("Update Order Error:", err.message);
       setError(err.message);
     }
   };
-
+  
   return (
     <div className="user-orders">
       <h1>Your Orders</h1>
@@ -170,10 +228,10 @@ const UserOrders = () => {
           onChange={(e) => setSearchId(e.target.value)}
           className="search-input"
         />
-        <button onClick={handleSearch} className="btn-primary">
+        <button onClick={handleSearch} className="search-button">
           Search
         </button>
-        <button onClick={clearSearch} className="btn-secondary">
+        <button onClick={clearSearch} className="search-button">
           Clear
         </button>
       </div>
@@ -200,12 +258,45 @@ const UserOrders = () => {
                 <button
                   className="btn-secondary"
                   onClick={() => handleUpdateOrder(order)}
+                  disabled={loading || error || !order.id}
                 >
                   Update Order
                 </button>
               </div>
             ))}
           </div>
+          {selectedShipment && (
+            <div className="details-modal">
+              <div className="modal-content">
+                <h2>Shipment Details</h2>
+                <p><strong>Order ID:</strong> {selectedShipment.order_id}</p>
+                <p><strong>Recipient Name:</strong> {selectedShipment.recipient_name}</p>
+                <p><strong>Recipient Email:</strong> {selectedShipment.recipient_email}</p>
+                <p><strong>Recipient Phone:</strong> {selectedShipment.recipient_phone}</p>
+                <p><strong>Delivery Address:</strong> {selectedShipment.delivery_address}</p>
+                <p><strong>City:</strong> {selectedShipment.city}</p>
+                <p><strong>Country:</strong> {selectedShipment.country}</p>
+                <p><strong>Postal Number:</strong> {selectedShipment.postal_number}</p>
+                <p><strong>Delivery Status:</strong> {selectedShipment.delivery_status}</p>
+                <p><strong>Tracking Number:</strong> {selectedShipment.tracking_number}</p>
+                <p><strong>Weight:</strong> {selectedShipment.weight} kg</p>
+                <p><strong>Estimated Cost:</strong> ${selectedShipment.estimated_cost}</p>
+                <button className="btn-secondary" onClick={closeDetailsModal}>
+                  Close
+                </button>
+              </div>
+            </div>
+            )}
+              {error && (
+            <div className="error-popup">
+              <div className="popup-content">
+                <p>{error}</p>
+                <button className="btn-secondary" onClick={() => setError('')}>
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
 
           {selectedOrder && (
             <div className="tracking-modal">

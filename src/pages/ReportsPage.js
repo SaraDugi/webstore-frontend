@@ -124,10 +124,10 @@ const ReportsPage = () => {
           onChange={(e) => setSearchId(e.target.value)}
           className="search-input"
         />
-        <button onClick={handleSearch} className="btn-primary">
+        <button onClick={handleSearch} className="search-button">
           Search
         </button>
-        <button onClick={clearSearch} className="btn-secondary">
+        <button onClick={clearSearch} className="search-button">
           Clear
         </button>
       </div>
@@ -178,8 +178,8 @@ const ReportsPage = () => {
       )}
 
       {editingReport && (
-        <div className="modal-overlay">
-          <div className="modal">
+        <div className="modal-reports">
+          <div className="modal-repo">
             <h2>Edit Report</h2>
             <form onSubmit={handleFormSubmit}>
               <label>

@@ -16,6 +16,7 @@ const Header = () => {
         setRole(null);
         return;
       }
+      try {
         const response = await fetch(`http://localhost:5000/users/${loggedInUser.id}`, {
           headers: {
             Accept: 'application/json',
@@ -34,6 +35,10 @@ const Header = () => {
         } else {
           setError('Role information is missing in the response.');
         }
+      } catch (err) {
+        console.error(err.message);
+        setError('An error occurred while fetching role information.');
+      }
     };
 
     fetchUserRole();
@@ -57,33 +62,37 @@ const Header = () => {
                 Products
               </Link>
             </li>
-            {role === 'admin' && (              <>
-                <li className="nav-item">
-                <Link to="/dashboard" className="nav-link">
-                  Dashboard
-                </Link>
-                </li>
-                <li className="nav-item">
-                  <Link to="/users" className="nav-link">
-                    User Management
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link to="/catalog-management" className="nav-link">
-                    Item Management
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link to="/coupon-management" className="nav-link">
-                    Coupon Management
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link to="/reports" className="nav-link">
-                    Reports
-                  </Link>
-                </li>
-              </>
+            {role === 'admin' && (
+              <li className="nav-item dropdown">
+                <span className="dropdown-title">Management</span>
+                <ul className="dropdown-menu">
+                  <li>
+                      <Link to="/orders" className="dropdown-link">
+                        All Orders
+                      </Link>
+                  </li>
+                  <li>
+                    <Link to="/users" className="dropdown-link">
+                      User Management
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/catalog-management" className="dropdown-link">
+                      Item Management
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/coupon-management" className="dropdown-link">
+                      Coupon Management
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/reports" className="dropdown-link">
+                      Reports
+                    </Link>
+                  </li>
+                </ul>
+              </li>
             )}
             <li className="nav-item">
               <Link to="/cart" className="nav-link cart-icon">
@@ -96,8 +105,8 @@ const Header = () => {
                 {loggedInUser ? (
                   <>
                     <li>
-                      <Link to="/orders" className="dropdown-link">
-                        All Orders
+                      <Link to="/shipments" className="dropdown-link">
+                        My Shipments
                       </Link>
                     </li>
                     <li>

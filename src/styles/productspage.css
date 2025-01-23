@@ -18,6 +18,19 @@
     padding: 0 20px;
   }
   
+  .search-button {
+    background-color: #2575fc;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    vertical-align: middle;
+    width: 20%;
+  }
+
   .product-card {
     background-color: #ffffff;
     padding: 20px;

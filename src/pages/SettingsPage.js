@@ -10,10 +10,6 @@ const SettingsPage = () => {
   const [userInfo, setUserInfo] = useState(null);
   const [creditCards, setCreditCards] = useState([]);
   const [isEditAccountModalOpen, setIsEditAccountModalOpen] = useState(false);
-  const [newEmail, setNewEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [repeatPassword, setRepeatPassword] = useState('');
-  const [showPasswordFields, setShowPasswordFields] = useState(false); 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
   const [isAccountDeactivated, setIsAccountDeactivated] = useState(null);
@@ -23,16 +19,23 @@ const SettingsPage = () => {
     balance: 0,
     active: true,
   });
+  const [newProfileData, setNewProfileData] = useState({
+    email: '',
+    password: '',
+    gender: '',
+    birthdate: '',
+    zipcode: '',
+    address: '',
+    country: '',
+    telephone: '',
+  });  
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
   const [filteredCards, setFilteredCards] = useState(creditCards);
 
   const openEditAccountModal = () => {
     setIsEditAccountModalOpen(true);
     setError('');
-    setNewEmail(loggedInUser?.email || '');
-    setNewPassword('');
-    setRepeatPassword('');
-    setShowPasswordFields(false);
+    setNewProfileData(userInfo || {});
   };
 
   const closeEditAccountModal = () => {
@@ -56,6 +59,7 @@ const SettingsPage = () => {
   
         if (response.status === 200 && response.data) {
           setUserInfo(response.data.data);
+          setNewProfileData(response.data.data);
           setError('');
         } else {
           setError('Failed to fetch user details.');
@@ -167,70 +171,60 @@ const SettingsPage = () => {
   };
 
   const handleEditAccount = async () => {
-    if (!newEmail) {
-      setError('Please provide a valid email.');
-      return;
-    }
-
-    let passwordToSend = loggedInUser.currentPassword;
-
-    if (showPasswordFields) {
-      if (!newPassword || !repeatPassword) {
-        setError('Both password fields are required.');
-        return;
-      }
-      if (newPassword !== repeatPassword) {
-        setError('Passwords do not match.');
-        return;
-      }
-      passwordToSend = newPassword;
-    }
-
     try {
-      const email = loggedInUser.email;
-
-      const searchResponse = await axios.get(`http://localhost:5000/users/search/${email}`, {
-        headers: {
-          Authorization: `Bearer ${loggedInUser.token}`,
-        },
-      });
-
-      if (searchResponse.status === 200 && searchResponse.data.data.length > 0) {
-        const userId = searchResponse.data.data[0].id;
-
-        const payload = {
-          email: newEmail,
-          password: passwordToSend,
-        };
-
-        const updateResponse = await axios.put(
-          `http://localhost:5000/users/${userId}/update`,
-          payload,
-          {
-            headers: {
-              Authorization: `Bearer ${loggedInUser.token}`,
-            },
-          }
-        );
-
-        if (updateResponse.status === 200) {
-          alert('Account updated successfully.');
-          if (newEmail) {
-            loggedInUser.email = newEmail;
-          }
-          closeEditAccountModal();
-        } else {
-          setError('Failed to update account.');
+      if (!loggedInUser || !loggedInUser.token) {
+        setError('You need to be logged in to update your profile.');
+        return;
+      }
+  
+      const payload = {
+        email: newProfileData.email || userInfo.email,
+        password: newProfileData.password || '',
+        gender: newProfileData.gender || userInfo.gender,
+        birthdate: newProfileData.birthdate || userInfo.birthdate,
+        zipcode: newProfileData.zipcode || userInfo.zipcode,
+        address: newProfileData.address || userInfo.address,
+        country: newProfileData.country || userInfo.country,
+        telephone: newProfileData.telephone || userInfo.telephone,
+      };
+  
+      if (!payload.email || !payload.birthdate || !payload.telephone) {
+        setError('Please fill out all required fields.');
+        return;
+      }
+  
+      const userId = loggedInUser.id;
+  
+      const response = await axios.put(
+        `http://localhost:5000/users/${userId}/update`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${loggedInUser.token}`,
+            'Content-Type': 'application/json',
+          },
         }
+      );
+  
+      if (response.status === 200) {
+        alert('Profile updated successfully.');
+        setUserInfo(payload);
+        closeEditAccountModal();
       } else {
-        setError('User not found.');
+        setError('Failed to update profile.');
       }
     } catch (error) {
-      console.error('Error updating account:', error.message);
-      setError('An error occurred while updating your account. Please try again.');
+      console.error('Error updating profile:', error.message);
+  
+      if (error.response && error.response.data && error.response.data.message) {
+        setError(error.response.data.message);
+      } else {
+        setError('An error occurred while updating your profile. Please try again.');
+      }
     }
   };
-
+  
+  
   const handleDeleteAllCards = async () => {
     if (!loggedInUser || !loggedInUser.token) {
       setError('You need to log in to perform this action.');
@@ -399,44 +393,6 @@ const SettingsPage = () => {
       setError('An error occurred while deleting the card. Please try again.');
     }
   };
-
-  const handleUpdateAddress = async () => {
-    if (!loggedInUser || !loggedInUser.token) {
-      setError('You need to log in to update your address.');
-      return;
-    }
-  
-    try {
-      const payload = {
-        zipcode: userInfo.zipcode,
-        address: userInfo.address,
-        country: userInfo.country,
-      };
-  
-      const response = await axios.put(
-        `http://localhost:5000/users/${loggedInUser.id}/address`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${loggedInUser.token}`,
-          },
-        }
-      );
-  
-      if (response.status === 200) {
-        alert('Address updated successfully.');
-        setUserInfo((prevInfo) => ({
-          ...prevInfo,
-          ...payload,
-        }));
-      } else {
-        setError('Failed to update address.');
-      }
-    } catch (error) {
-      console.error('Error updating address:', error.message);
-      setError('An error occurred while updating your address. Please try again.');
-    }
-  };  
   
   const handleToggleCardStatus = async (cardId, currentStatus) => {
     if (!loggedInUser || !loggedInUser.token) {
@@ -545,7 +501,7 @@ const SettingsPage = () => {
                 Deactivate Account
               </button>
             )}
-            <button className="btn-danger" onClick={() => setIsDeleteModalOpen(true)}>
+            <button className="btn-delete-" onClick={() => setIsDeleteModalOpen(true)}>
               Delete Profile
             </button>
             <button className="btn-primary" onClick={openAddCardModal}>
@@ -557,8 +513,8 @@ const SettingsPage = () => {
 
       {/* Add Credit Card Modal */}
       {isAddCardModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal">
+        <div className="modal-addcard">
+          <div className="modal-addc">
             <h2>Add New Credit Card</h2>
             {error && <p className="error-message">{error}</p>}
             <form onSubmit={handleAddCard}>
@@ -648,7 +604,7 @@ const SettingsPage = () => {
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
       />
-      <button className="btn-primary search-button" onClick={handleSearch}>
+      <button className="search-button" onClick={handleSearch}>
         Search
       </button>
       {searchQuery && (
@@ -712,48 +668,107 @@ const SettingsPage = () => {
   </div>
 </div>
        {/* Edit Account Modal */}
-       {isEditAccountModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2>Edit Account</h2>
+      {isEditAccountModalOpen && (
+        <div className="modal-editAccount">
+          <div className="modal-editacc">
+            <h2>Edit Profile</h2>
             {error && <p className="error-message">{error}</p>}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                // Handle edit account logic here
-              }}
-            >
+            <form onSubmit={(e) => e.preventDefault()}>
               <label>
-                New Email:
+                Email:
                 <input
                   type="email"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
+                  value={newProfileData.email}
+                  onChange={(e) =>
+                    setNewProfileData({ ...newProfileData, email: e.target.value })
+                  }
+                  required
                 />
               </label>
-              <div>
-                <label>
-                  New Password:
-                  <input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                  />
-                </label>
-                <label>
-                  Repeat Password:
-                  <input
-                    type="password"
-                    value={repeatPassword}
-                    onChange={(e) => setRepeatPassword(e.target.value)}
-                  />
-                </label>
-              </div>
-              <div className="button-container">
-              <button type="submit" className="btn-primary">
+              <label>
+                Password:
+                <input
+                  type="password"
+                  value={newProfileData.password}
+                  onChange={(e) =>
+                    setNewProfileData({ ...newProfileData, password: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Gender:
+                <select
+                  value={newProfileData.gender}
+                  onChange={(e) =>
+                    setNewProfileData({ ...newProfileData, gender: e.target.value })
+                  }
+                >
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </label>
+              <label>
+                Birthdate:
+                <input
+                  type="date"
+                  value={newProfileData.birthdate}
+                  onChange={(e) =>
+                    setNewProfileData({ ...newProfileData, birthdate: e.target.value })
+                  }
+                  required
+                />
+              </label>
+              <label>
+                Telephone:
+                <input
+                  type="text"
+                  value={newProfileData.telephone}
+                  onChange={(e) =>
+                    setNewProfileData({ ...newProfileData, telephone: e.target.value })
+                  }
+                  required
+                />
+              </label>
+              <label>
+                Zipcode:
+                <input
+                  type="text"
+                  value={newProfileData.zipcode}
+                  onChange={(e) =>
+                    setNewProfileData({ ...newProfileData, zipcode: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Address:
+                <input
+                  type="text"
+                  value={newProfileData.address}
+                  onChange={(e) =>
+                    setNewProfileData({ ...newProfileData, address: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Country:
+                <input
+                  type="text"
+                  value={newProfileData.country}
+                  onChange={(e) =>
+                    setNewProfileData({ ...newProfileData, country: e.target.value })
+                  }
+                />
+              </label>
+              <div className="modal-buttons">
+                <button type="button" className="btn-primary" onClick={handleEditAccount}>
                   Save Changes
                 </button>
-                <button type="button" className="btn-secondary" onClick={closeEditAccountModal}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={closeEditAccountModal}
+                >
                   Cancel
                 </button>
               </div>
@@ -764,8 +779,8 @@ const SettingsPage = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal">
+        <div className="modal-delete">
+          <div className="modal-dele">
             <h2>Confirm Deletion</h2>
             <p>Are you sure you want to delete your profile? This action cannot be undone.</p>
             <div className="modal-buttons">

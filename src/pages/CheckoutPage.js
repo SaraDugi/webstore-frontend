@@ -129,6 +129,28 @@ const CheckoutPage = () => {
     }
   };
 
+  const verifyShipment = async (orderId) => {
+    try {
+      const response = await axios.post(
+        'http://localhost:9000/api/shipments/verify',
+        { order_id: orderId },
+        {
+          headers: {
+            Authorization: `Bearer ${loggedInUser.token}`,
+          },
+        }
+      );
+
+      if (response.status === 200 && response.data.exists) {
+        return true; // Shipment exists
+      }
+      return false; // Shipment does not exist
+    } catch (err) {
+      console.error('Error verifying shipment:', err.message);
+      throw new Error('Failed to verify shipment.');
+    }
+  };
+
   const handlePay = async () => {
     if (!userInfo?.address || !userInfo?.zipcode || !userInfo?.country || !selectedCard) {
       setError('Please complete all fields and select a credit card before proceeding.');
@@ -139,13 +161,73 @@ const CheckoutPage = () => {
     setIsLoading(true);
 
     try {
+      // Step 1: Create the order
       const orderId = await createOrder();
       const totalAmount = parseFloat(calculateTotal());
+
+      // Step 2: Verify if a shipment already exists for this order
+      const shipmentExists = await verifyShipment(orderId);
+      if (shipmentExists) {
+        alert(`A shipment already exists for order ${orderId}.`);
+        navigate('/payment-history');
+        return;
+      }
+
+      // Step 3: Update the card balance
       await updateCardBalance(selectedCard, -totalAmount);
 
-      alert(`Order ${orderId} created and payment processed successfully!`);
-      navigate('/payment-history');
+      // Step 4: Make the payment
+      const paymentPayload = {
+        order_id: orderId,
+        cardNumber: selectedCard,
+        paidDate: new Date().toISOString(),
+        amount: totalAmount,
+      };
+
+      const paymentResponse = await axios.post('http://localhost:8081/api/payment', paymentPayload, {
+        headers: {
+          Authorization: `Bearer ${loggedInUser.token}`,
+        },
+      });
+
+      if (paymentResponse.status !== 200) {
+        throw new Error('Payment could not be processed.');
+      }
+
+      // Step 5: Create the shipment with a unique tracking number
+      const uniqueTrackingNumber = `TRACK${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+      const shipmentPayload = {
+        order_id: orderId,
+        recipient_name: userInfo.email,
+        recipient_email: userInfo.email,
+        recipient_phone: userInfo.phone || '1234567890',
+        delivery_address: userInfo.address,
+        postal_number: userInfo.zipcode,
+        city: userInfo.city || 'Unknown City',
+        country: userInfo.country,
+        delivery_status: 'shipment handed over',
+        tracking_number: uniqueTrackingNumber,
+        weight: 1.5,
+        estimated_cost: 15,
+      };
+
+      console.log('Shipment Payload:', JSON.stringify(shipmentPayload, null, 2));
+
+      const shipmentResponse = await axios.post('http://localhost:9000/api/shipments', shipmentPayload, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${loggedInUser.token}`,
+        },
+      });
+
+      if (shipmentResponse.status === 201) {
+        alert(`Order ${orderId} created, payment processed, and shipment scheduled successfully!`);
+        navigate('/payment-history');
+      } else {
+        throw new Error('Shipment could not be created.');
+      }
     } catch (err) {
+      console.error('Error in handlePay:', err.message);
       setError(err.message);
     } finally {
       setIsLoading(false);

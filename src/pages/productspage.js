@@ -101,7 +101,7 @@ const ProductsPage = () => {
           value={searchId}
           onChange={(e) => setSearchId(e.target.value)}
         />
-        <button onClick={handleSearch}>Search</button>
+        <button className='search-button' onClick={handleSearch}>Search</button>
         {searchResult && (
           <button onClick={handleCancelSearch} className="btn-cancel">
             Cancel Search
