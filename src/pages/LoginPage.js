@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { LogInContext } from '../contexts/LoginContext';
 import { useNavigate, Navigate } from 'react-router-dom';
+import '../styles/loginpage.css';
 
 const LoginPage = () => {
   const { handleLogin, loggedInUser } = useContext(LogInContext);

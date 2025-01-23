@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { UsersContext } from '../contexts/UserContext';
 import { LogInContext } from '../contexts/LoginContext';
 import { Navigate } from 'react-router-dom';
+import '../styles/registerpage.css';
 
 const RegisterPage = () => {
   const { loggedInUser } = useContext(LogInContext);

@@ -3,7 +3,7 @@ import { CartContext } from '../contexts/CartContext';
 import { LogInContext } from '../contexts/LoginContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import '../styles.css';
+import '../styles/checkoutpage.css';
 
 const CheckoutPage = () => {
   const { cart } = useContext(CartContext);

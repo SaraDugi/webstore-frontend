@@ -59,9 +59,9 @@ const Header = () => {
             </li>
             {role === 'admin' && (              <>
                 <li className="nav-item">
-                  <Link to="/dashboard" className="nav-link">
-                    Dashboard
-                  </Link>
+                <Link to="/dashboard" className="nav-link">
+                  Dashboard
+                </Link>
                 </li>
                 <li className="nav-item">
                   <Link to="/users" className="nav-link">
@@ -76,6 +76,11 @@ const Header = () => {
                 <li className="nav-item">
                   <Link to="/coupon-management" className="nav-link">
                     Coupon Management
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link to="/reports" className="nav-link">
+                    Reports
                   </Link>
                 </li>
               </>

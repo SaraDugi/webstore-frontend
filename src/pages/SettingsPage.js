@@ -1,6 +1,6 @@
 import React, { useContext, useState , useEffect} from 'react';
 import { LogInContext } from '../contexts/LoginContext';
-import '../styles.css';
+import '../styles/settingspage.css';
 import axios from 'axios';
 
 const SettingsPage = () => {

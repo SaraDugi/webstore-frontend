@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { LogInContext } from '../contexts/LoginContext';
-import '../styles.css';
+import '../styles/paymenthistory.css';
 
 const PaymentHistory = () => {
   const { loggedInUser } = useContext(LogInContext);

@@ -14,6 +14,8 @@ import AboutUsPage from './pages/AboutUsPage';
 import PaymentHistory from './pages/PaymentHistory';
 import UsersPage from './pages/UsersPage';
 import ItemManagementPage from './pages/ItemsManagemnetPage';
+import ReportsPage from './pages/ReportsPage';
+import DashboardPage from './pages/DashboardPage';
 import { LogInProvider, LogInContext } from './contexts/LoginContext';
 import { CartProvider } from './contexts/CartContext';
 
@@ -36,6 +38,8 @@ const App = () => {
             <Route path="/settings" element={<PrivateRoute component={SettingsPage} />} />
             <Route path="/payment-history" element={<PrivateRoute component={PaymentHistory} />} />
             <Route path="/catalog-management" element={<PrivateRoute component={ItemManagementPage} />} />
+            <Route path="/dashboard" element={<PrivateRoute component={DashboardPage} />} />
+            <Route path="/reports" element={<PrivateRoute component={ReportsPage} />} />
           </Routes>
           <Footer />
         </Router>

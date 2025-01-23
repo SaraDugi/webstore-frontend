@@ -1,17 +1,7 @@
 import React, { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import '../styles.css';
-import { CartContext } from '../contexts/CartContext';
+import '../styles/homepage.css';
 
 const HomePage = () => {
-  const navigate = useNavigate();
-  const { addToCart } = useContext(CartContext);
-
-  const handleAddToCart = (product) => {
-    addToCart(product);
-    alert(`${product.name} added to cart!`);
-  };
-
   return (
     <div className="homepage">
       <section className="hero">

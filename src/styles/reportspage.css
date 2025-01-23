@@ -1,0 +1,118 @@
+.reports-container {
+    text-align: center;
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(to bottom, #f9f9f9, #e6f0ff);
+    color: #333;
+    min-height: 100vh;
+  }
+  
+  .reports-title {
+    font-size: 2.5rem;
+    color: black;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .search-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+  
+  .search-input {
+    padding: 10px;
+    width: 300px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s ease;
+  }
+  
+  .search-input:focus {
+    border-color: #2575fc;
+    outline: none;
+  }
+  
+  .btn-primary,
+  .btn-secondary {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .btn-primary {
+    background-color: #2575fc;
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background-color: #1a5fcc;
+    transform: translateY(-2px);
+  }
+  
+  .btn-secondary {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #d32f2f;
+    transform: translateY(-2px);
+  }
+  
+  .error-message {
+    color: red;
+    font-size: 1rem;
+    margin: 15px 0;
+  }
+  
+  .reports-table {
+    width: 90%;
+    max-width: 1200px;
+    border-collapse: collapse;
+    margin: 0 auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .reports-table th,
+  .reports-table td {
+    padding: 15px;
+    text-align: center;
+    border: 1px solid #ddd;
+  }
+  
+  .reports-table th {
+    background-color: #2575fc;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  
+  .reports-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  .reports-table tr:hover {
+    background-color: #e6f0ff;
+  }
+  
+  @media (max-width: 768px) {
+    .search-container {
+      flex-direction: column;
+    }
+  
+    .reports-table {
+      font-size: 0.9rem;
+    }
+  }  
