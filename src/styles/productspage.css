@@ -11,51 +11,6 @@
     margin-bottom: 20px;
   }
   
-  .search-bar {
-    margin-bottom: 30px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-  }
-  
-  .search-bar input {
-    padding: 10px;
-    width: 300px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 1rem;
-  }
-  
-  .search-bar button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    background-color: #2575fc;
-    color: white;
-  }
-  
-  .search-bar button:hover {
-    background-color: #1a5fcc;
-  }
-  
-  .btn-cancel {
-    background-color: #f44336;
-    color: white;
-  }
-  
-  .btn-cancel:hover {
-    background-color: #d32f2f;
-  }
-  
-  .search-error {
-    color: red;
-    font-size: 1rem;
-    margin: 10px 0;
-  }
-  
   .product-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -108,3 +63,5 @@
   .btn-primary:hover {
     background-color: #1a5fcc;
   }  
+  
+  

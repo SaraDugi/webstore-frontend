@@ -94,7 +94,7 @@ const ProductsPage = () => {
   return (
     <div className="products-page">
       <h1>Products</h1>
-      <div className="search-bar">
+      <div className="search-container">
         <input
           type="text"
           placeholder="Enter Product ID"

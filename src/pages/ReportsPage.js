@@ -9,6 +9,7 @@ const ReportsPage = () => {
   const [error, setError] = useState('');
   const [searchId, setSearchId] = useState('');
   const [filteredReports, setFilteredReports] = useState([]);
+  const [editingReport, setEditingReport] = useState(null);
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -64,6 +65,53 @@ const ReportsPage = () => {
     setFilteredReports(reports);
   };
 
+  const handleEditClick = (report) => {
+    setEditingReport(report);
+  };
+
+  const handleUpdate = async (updatedReport) => {
+    try {
+      const response = await fetch(`http://localhost:4000/report`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${loggedInUser.token}`,
+        },
+        body: JSON.stringify(updatedReport),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert(result.message);
+        setReports((prev) =>
+          prev.map((r) => (r.IssueID === updatedReport.Report_id ? { ...r, ...updatedReport } : r))
+        );
+        setFilteredReports((prev) =>
+          prev.map((r) => (r.IssueID === updatedReport.Report_id ? { ...r, ...updatedReport } : r))
+        );
+      } else {
+        alert(result.message || 'Failed to update the report.');
+      }
+    } catch (err) {
+      alert('An error occurred while updating the report.');
+    } finally {
+      setEditingReport(null);
+    }
+  };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const updatedReport = {
+      Report_id: editingReport.IssueID,
+      Status: formData.get('Status'),
+      ResolvedAt: formData.get('ResolvedAt'),
+      Priority: formData.get('Priority'),
+    };
+    handleUpdate(updatedReport);
+  };
+
   return (
     <div className="reports-container">
       <h1 className="reports-title">Reports</h1>
@@ -102,6 +150,7 @@ const ReportsPage = () => {
               <th>Reported At</th>
               <th>Resolved At</th>
               <th>Comments</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -117,10 +166,59 @@ const ReportsPage = () => {
                 <td>{new Date(report.ReportedAt).toLocaleString()}</td>
                 <td>{report.ResolvedAt ? new Date(report.ResolvedAt).toLocaleString() : 'N/A'}</td>
                 <td>{report.comments}</td>
+                <td>
+                  <button onClick={() => handleEditClick(report)} className="btn-primary">
+                    Edit
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+      )}
+
+      {editingReport && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>Edit Report</h2>
+            <form onSubmit={handleFormSubmit}>
+              <label>
+                Status:
+                <input type="text" name="Status" defaultValue={editingReport.Status} required />
+              </label>
+              <label>
+                Resolved At:
+                <input
+                  type="datetime-local"
+                  name="ResolvedAt"
+                  defaultValue={
+                    editingReport.ResolvedAt
+                      ? new Date(editingReport.ResolvedAt).toISOString().slice(0, 16)
+                      : ''
+                  }
+                />
+              </label>
+              <label>
+                Priority:
+                <select name="Priority" defaultValue={editingReport.Priority}>
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                </select>
+              </label>
+              <button type="submit" className="btn-primary">
+                Update
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditingReport(null)}
+                className="btn-secondary"
+              >
+                Cancel
+              </button>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

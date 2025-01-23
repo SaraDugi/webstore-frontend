@@ -16,6 +16,7 @@ import UsersPage from './pages/UsersPage';
 import ItemManagementPage from './pages/ItemsManagemnetPage';
 import ReportsPage from './pages/ReportsPage';
 import DashboardPage from './pages/DashboardPage';
+import OrderDetails from './pages/OrderDetailsPage';
 import { LogInProvider, LogInContext } from './contexts/LoginContext';
 import { CartProvider } from './contexts/CartContext';
 
@@ -35,6 +36,7 @@ const App = () => {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/about" element={<AboutUsPage />} />
             <Route path="/orders" element={<PrivateRoute component={UserOrders} />} />
+            <Route path="/order/:orderId" element={<PrivateRoute component={OrderDetails} />} /> {/* Order Details Route */}
             <Route path="/settings" element={<PrivateRoute component={SettingsPage} />} />
             <Route path="/payment-history" element={<PrivateRoute component={PaymentHistory} />} />
             <Route path="/catalog-management" element={<PrivateRoute component={ItemManagementPage} />} />

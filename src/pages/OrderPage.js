@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { LogInContext } from '../contexts/LoginContext';
 import '../styles/orderspage.css';
+import { useParams, useNavigate } from 'react-router-dom';
 
 const UserOrders = () => {
   const { loggedInUser } = useContext(LogInContext);
@@ -10,6 +11,8 @@ const UserOrders = () => {
   const [error, setError] = useState('');
   const [searchId, setSearchId] = useState('');
   const [searchResult, setSearchResult] = useState(null);
+  const { orderId } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -54,6 +57,10 @@ const UserOrders = () => {
 
     fetchOrders();
   }, [loggedInUser]);
+
+  const viewOrderDetails = (orderId) => {
+    navigate(`/order/${orderId}`);
+  };
 
   const handleSearch = async () => {
     if (!searchId) {
@@ -184,6 +191,9 @@ const UserOrders = () => {
                 <p><strong>Date:</strong> {new Date(order.order_date).toLocaleString()}</p>
                 <p><strong>Total Amount:</strong> ${order.total_amount}</p>
                 <p><strong>Status:</strong> {order.status}</p>
+                <button className="btn-primary" onClick={() => viewOrderDetails(order.id)}>
+                View Details
+              </button>
                 <button className="btn-primary" onClick={() => handleTrackOrder(order)}>
                   Track Order
                 </button>

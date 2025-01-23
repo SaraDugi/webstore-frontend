@@ -55,7 +55,7 @@ const PaymentHistory = () => {
       });
 
       if (response.status === 200) {
-        setStatistics(response.data.value); // Extract statistics from "value"
+        setStatistics(response.data.value); 
       } else {
         setError('Failed to fetch statistics.');
       }
@@ -184,9 +184,9 @@ const PaymentHistory = () => {
       <h1>Payment History</h1>
       <div className="content-container">
         {/* Table Section */}
-        <div className="table-container">
-          <div className="search-bar">
-            <input
+        <div className="table-container">               
+            <div className="search-container">
+              <input
               type="text"
               placeholder="Enter Credit Card Number"
               value={searchQuery}

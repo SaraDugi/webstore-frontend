@@ -1,0 +1,40 @@
+.order-details {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background-color: #f9f9f9;
+    min-height: 100vh;
+  }
+  
+  .btn-back {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 20px;
+  }
+  
+  .btn-back:hover {
+    background-color: #0056b3;
+  }
+  
+  .order-card {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .order-card h2 {
+    margin-bottom: 15px;
+  }
+  
+  .order-card ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .order-card li {
+    margin-bottom: 10px;
+  }  
